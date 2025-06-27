@@ -2,14 +2,18 @@
 import { useState } from "react";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
-import { Bell, Menu, X, Users, User } from "lucide-react";
+import { Bell, Menu, X, Users, User, LogOut, LogIn } from "lucide-react";
 
 interface HeaderProps {
-  userType: "pilgrim" | "agent";
-  setUserType: (type: "pilgrim" | "agent") => void;
+  userType: "pilgrim" | "agent" | "admin";
+  setUserType: (type: "pilgrim" | "agent" | "admin") => void;
+  activeTab: string;
+  setActiveTab: (tab: string) => void;
+  isLoggedIn: boolean;
+  setIsLoggedIn: (logged: boolean) => void;
 }
 
-const Header = ({ userType, setUserType }: HeaderProps) => {
+const Header = ({ userType, setUserType, activeTab, setActiveTab, isLoggedIn, setIsLoggedIn }: HeaderProps) => {
   const [isMenuOpen, setIsMenuOpen] = useState(false);
 
   const navItems = [
@@ -22,6 +26,21 @@ const Header = ({ userType, setUserType }: HeaderProps) => {
     { id: "support", label: "Support", icon: "💬" },
     { id: "resources", label: "Resources", icon: "📚" },
   ];
+
+  const handleNavClick = (tabId: string) => {
+    setActiveTab(tabId);
+    setIsMenuOpen(false);
+  };
+
+  const handleLogin = () => {
+    setIsLoggedIn(true);
+  };
+
+  const handleLogout = () => {
+    setIsLoggedIn(false);
+    setUserType("pilgrim");
+    setActiveTab("home");
+  };
 
   return (
     <header className="bg-white/90 backdrop-blur-md border-b border-emerald-100 sticky top-0 z-50">
@@ -43,13 +62,9 @@ const Header = ({ userType, setUserType }: HeaderProps) => {
             {navItems.map((item) => (
               <Button
                 key={item.id}
-                variant="ghost"
+                variant={activeTab === item.id ? "default" : "ghost"}
                 className="text-sm font-medium hover:bg-emerald-50 hover:text-emerald-700"
-                onClick={() => {
-                  const tabs = document.querySelector('[role="tablist"]');
-                  const trigger = tabs?.querySelector(`[value="${item.id}"]`) as HTMLButtonElement;
-                  trigger?.click();
-                }}
+                onClick={() => handleNavClick(item.id)}
               >
                 <span className="mr-2">{item.icon}</span>
                 {item.label}
@@ -57,35 +72,58 @@ const Header = ({ userType, setUserType }: HeaderProps) => {
             ))}
           </nav>
 
-          {/* User Type Toggle & Actions */}
+          {/* User Actions */}
           <div className="flex items-center space-x-3">
-            <div className="hidden md:flex items-center space-x-2">
-              <Button
-                variant={userType === "pilgrim" ? "default" : "outline"}
-                size="sm"
-                onClick={() => setUserType("pilgrim")}
-                className="text-xs"
-              >
-                <User className="w-3 h-3 mr-1" />
-                Pilgrim
-              </Button>
-              <Button
-                variant={userType === "agent" ? "default" : "outline"}
-                size="sm"
-                onClick={() => setUserType("agent")}
-                className="text-xs"
-              >
-                <Users className="w-3 h-3 mr-1" />
-                Agent
-              </Button>
-            </div>
+            {isLoggedIn ? (
+              <>
+                <div className="hidden md:flex items-center space-x-2">
+                  <Button
+                    variant={userType === "pilgrim" ? "default" : "outline"}
+                    size="sm"
+                    onClick={() => setUserType("pilgrim")}
+                    className="text-xs"
+                  >
+                    <User className="w-3 h-3 mr-1" />
+                    Pilgrim
+                  </Button>
+                  <Button
+                    variant={userType === "agent" ? "default" : "outline"}
+                    size="sm"
+                    onClick={() => setUserType("agent")}
+                    className="text-xs"
+                  >
+                    <Users className="w-3 h-3 mr-1" />
+                    Agent
+                  </Button>
+                  <Button
+                    variant={userType === "admin" ? "default" : "outline"}
+                    size="sm"
+                    onClick={() => setUserType("admin")}
+                    className="text-xs"
+                  >
+                    <Users className="w-3 h-3 mr-1" />
+                    Admin
+                  </Button>
+                </div>
 
-            <Button variant="ghost" size="sm" className="relative">
-              <Bell className="w-4 h-4" />
-              <Badge className="absolute -top-1 -right-1 w-5 h-5 flex items-center justify-center p-0 text-xs">
-                3
-              </Badge>
-            </Button>
+                <Button variant="ghost" size="sm" className="relative">
+                  <Bell className="w-4 h-4" />
+                  <Badge className="absolute -top-1 -right-1 w-5 h-5 flex items-center justify-center p-0 text-xs">
+                    3
+                  </Badge>
+                </Button>
+
+                <Button variant="ghost" size="sm" onClick={handleLogout}>
+                  <LogOut className="w-4 h-4" />
+                  <span className="hidden md:inline ml-1">Logout</span>
+                </Button>
+              </>
+            ) : (
+              <Button variant="default" size="sm" onClick={handleLogin}>
+                <LogIn className="w-4 h-4" />
+                <span className="ml-1">Login</span>
+              </Button>
+            )}
 
             {/* Mobile Menu Button */}
             <Button
@@ -106,40 +144,46 @@ const Header = ({ userType, setUserType }: HeaderProps) => {
               {navItems.map((item) => (
                 <Button
                   key={item.id}
-                  variant="ghost"
+                  variant={activeTab === item.id ? "default" : "ghost"}
                   className="justify-start text-sm font-medium hover:bg-emerald-50 hover:text-emerald-700"
-                  onClick={() => {
-                    const tabs = document.querySelector('[role="tablist"]');
-                    const trigger = tabs?.querySelector(`[value="${item.id}"]`) as HTMLButtonElement;
-                    trigger?.click();
-                    setIsMenuOpen(false);
-                  }}
+                  onClick={() => handleNavClick(item.id)}
                 >
                   <span className="mr-3">{item.icon}</span>
                   {item.label}
                 </Button>
               ))}
               
-              <div className="flex space-x-2 pt-2 border-t">
-                <Button
-                  variant={userType === "pilgrim" ? "default" : "outline"}
-                  size="sm"
-                  onClick={() => setUserType("pilgrim")}
-                  className="flex-1"
-                >
-                  <User className="w-3 h-3 mr-1" />
-                  Pilgrim
-                </Button>
-                <Button
-                  variant={userType === "agent" ? "default" : "outline"}
-                  size="sm"
-                  onClick={() => setUserType("agent")}
-                  className="flex-1"
-                >
-                  <Users className="w-3 h-3 mr-1" />
-                  Agent
-                </Button>
-              </div>
+              {isLoggedIn && (
+                <div className="flex space-x-2 pt-2 border-t">
+                  <Button
+                    variant={userType === "pilgrim" ? "default" : "outline"}
+                    size="sm"
+                    onClick={() => setUserType("pilgrim")}
+                    className="flex-1"
+                  >
+                    <User className="w-3 h-3 mr-1" />
+                    Pilgrim
+                  </Button>
+                  <Button
+                    variant={userType === "agent" ? "default" : "outline"}
+                    size="sm"
+                    onClick={() => setUserType("agent")}
+                    className="flex-1"
+                  >
+                    <Users className="w-3 h-3 mr-1" />
+                    Agent
+                  </Button>
+                  <Button
+                    variant={userType === "admin" ? "default" : "outline"}
+                    size="sm"
+                    onClick={() => setUserType("admin")}
+                    className="flex-1"
+                  >
+                    <Users className="w-3 h-3 mr-1" />
+                    Admin
+                  </Button>
+                </div>
+              )}
             </div>
           </div>
         )}

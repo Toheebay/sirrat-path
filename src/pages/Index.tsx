@@ -1,10 +1,6 @@
 
 import { useState } from "react";
-import { Button } from "@/components/ui/button";
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
-import { Badge } from "@/components/ui/badge";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
-import { Bell, Calendar, Users, CreditCard, FileText, MessageSquare, BookOpen, CheckCircle } from "lucide-react";
 import Header from "@/components/Header";
 import HeroSection from "@/components/HeroSection";
 import FeatureCards from "@/components/FeatureCards";
@@ -16,14 +12,24 @@ import NotificationCenter from "@/components/NotificationCenter";
 import SupportChat from "@/components/SupportChat";
 import ResourcesSection from "@/components/ResourcesSection";
 import Footer from "@/components/Footer";
+import AdminDashboard from "@/components/AdminDashboard";
+import NewsMarquee from "@/components/NewsMarquee";
 
 const Index = () => {
   const [activeTab, setActiveTab] = useState("home");
-  const [userType, setUserType] = useState<"pilgrim" | "agent">("pilgrim");
+  const [userType, setUserType] = useState<"pilgrim" | "agent" | "admin">("pilgrim");
+  const [isLoggedIn, setIsLoggedIn] = useState(false);
 
   return (
     <div className="min-h-screen bg-gradient-to-br from-emerald-50 via-white to-blue-50">
-      <Header userType={userType} setUserType={setUserType} />
+      <Header 
+        userType={userType} 
+        setUserType={setUserType} 
+        activeTab={activeTab}
+        setActiveTab={setActiveTab}
+        isLoggedIn={isLoggedIn}
+        setIsLoggedIn={setIsLoggedIn}
+      />
       
       <Tabs value={activeTab} onValueChange={setActiveTab} className="w-full">
         <TabsList className="hidden" />
@@ -53,7 +59,13 @@ const Index = () => {
 
         <TabsContent value="dashboard" className="mt-0">
           <div className="container mx-auto px-4 py-8">
-            {userType === "agent" ? <AgentDashboard /> : <PaymentDashboard />}
+            {userType === "admin" ? (
+              <AdminDashboard />
+            ) : userType === "agent" ? (
+              <AgentDashboard />
+            ) : (
+              <PaymentDashboard />
+            )}
           </div>
         </TabsContent>
 
@@ -77,6 +89,7 @@ const Index = () => {
       </Tabs>
 
       <Footer setActiveTab={setActiveTab} />
+      <NewsMarquee />
     </div>
   );
 };

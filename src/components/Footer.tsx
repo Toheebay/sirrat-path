@@ -17,9 +17,9 @@ const Footer = ({ setActiveTab }: FooterProps) => {
   ];
 
   const contactInfo = [
-    { type: "Phone", value: "+234 123 456 7890", icon: "📞" },
-    { type: "Email", value: "support@hajjpathway.com", icon: "📧" },
-    { type: "WhatsApp", value: "+234 123 456 7890", icon: "💬" },
+    { type: "Phone", value: "+2347067412852", icon: "📞" },
+    { type: "WhatsApp", value: "+2348024764090", icon: "💬" },
+    { type: "Email", value: "adebayoajani23@gmail.com", icon: "📧" },
     { type: "Address", value: "Lagos, Nigeria", icon: "📍" }
   ];
 
