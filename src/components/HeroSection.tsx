@@ -32,6 +32,21 @@ const HeroSection = ({ setActiveTab }: HeroSectionProps) => {
 
       <div className="container mx-auto px-4 relative">
         <div className="max-w-6xl mx-auto">
+          {/* Advertisement Image */}
+          <div className="text-center mb-12">
+            <div className="inline-block rounded-xl overflow-hidden shadow-2xl hover:shadow-3xl transition-all duration-300 transform hover:scale-105">
+              <img 
+                src="/lovable-uploads/4f101b78-fcac-4514-a2ae-792d7b51fd09.png" 
+                alt="Abdullateef Integrated Hajj & Umrah Ltd - Perform Hajj 2026 with Hon. Iyepe"
+                className="w-full max-w-md mx-auto h-auto"
+              />
+            </div>
+            <div className="mt-6 p-4 bg-gradient-to-r from-red-600 to-red-700 text-white rounded-lg max-w-md mx-auto">
+              <p className="text-2xl font-bold">Total Package: ₦9,850,000</p>
+              <p className="text-sm opacity-90">Pay Small Small - Installment Available</p>
+            </div>
+          </div>
+
           <div className="grid lg:grid-cols-2 gap-12 items-center">
             {/* Content */}
             <div className="text-center lg:text-left">

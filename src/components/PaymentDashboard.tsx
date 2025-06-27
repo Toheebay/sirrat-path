@@ -4,7 +4,6 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/com
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { Progress } from "@/components/ui/progress";
-import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { 
   CreditCard, 
   Calendar, 
@@ -15,30 +14,37 @@ import {
   Wallet,
   Bell,
   Building,
-  Copy
+  Copy,
+  MessageCircle,
+  Mail
 } from "lucide-react";
 import { useToast } from "@/hooks/use-toast";
 
 const PaymentDashboard = () => {
   const [paymentHistory] = useState([
-    { id: 1, date: "2024-01-15", amount: 100000, status: "completed", method: "Bank Transfer" },
-    { id: 2, date: "2024-02-15", amount: 100000, status: "completed", method: "Bank Transfer" },
-    { id: 3, date: "2024-03-15", amount: 100000, status: "pending", method: "Bank Transfer" },
-    { id: 4, date: "2024-04-15", amount: 100000, status: "upcoming", method: "Bank Transfer" },
+    { id: 1, date: "2024-01-15", amount: 500000, status: "completed", method: "Bank Transfer", reference: "TXN001" },
+    { id: 2, date: "2024-02-15", amount: 300000, status: "completed", method: "Bank Transfer", reference: "TXN002" },
+    { id: 3, date: "2024-03-15", amount: 250000, status: "pending", method: "Bank Transfer", reference: "TXN003" },
+    { id: 4, date: "2024-04-15", amount: 200000, status: "upcoming", method: "Bank Transfer", reference: "TXN004" },
   ]);
 
   const { toast } = useToast();
 
-  const totalAmount = 2575000;
-  const paidAmount = 200000;
+  const totalAmount = 9850000; // Updated total amount
+  const paidAmount = 800000; // Amount already paid
   const progressPercentage = (paidAmount / totalAmount) * 100;
   const remainingAmount = totalAmount - paidAmount;
-  const monthsRemaining = Math.ceil(remainingAmount / 100000);
+  const monthsRemaining = Math.ceil(remainingAmount / 200000); // Assuming 200k per month
 
   const bankDetails = {
     accountName: "Abdullateef Hajj and Umrah integrated Service Ltd.",
     bankName: "Lotus Bank",
     accountNumber: "1000019078"
+  };
+
+  const contactInfo = {
+    whatsapp: ["+2347067412852", "+2348024764090"],
+    email: "adebayoajani23@gmail.com"
   };
 
   const copyToClipboard = (text: string) => {
@@ -49,11 +55,15 @@ const PaymentDashboard = () => {
     });
   };
 
-  const handleSetupReminder = () => {
-    toast({
-      title: "Reminder Set",
-      description: "You'll receive payment reminders 3 days before due date.",
-    });
+  const handleWhatsAppContact = (number: string) => {
+    const message = encodeURIComponent(`Hello, I want to inquire about Hajj 2026 payment. My remaining balance is ₦${remainingAmount.toLocaleString()}`);
+    window.open(`https://wa.me/${number.replace('+', '')}?text=${message}`, '_blank');
+  };
+
+  const handleEmailContact = () => {
+    const subject = encodeURIComponent('Hajj 2026 Payment Inquiry');
+    const body = encodeURIComponent(`Hello,\n\nI want to inquire about my Hajj 2026 payment.\nRemaining Balance: ₦${remainingAmount.toLocaleString()}\n\nThank you.`);
+    window.open(`mailto:${contactInfo.email}?subject=${subject}&body=${body}`, '_blank');
   };
 
   return (
@@ -93,14 +103,14 @@ const PaymentDashboard = () => {
           </CardContent>
         </Card>
 
-        <Card className="bg-gradient-to-r from-orange-500 to-orange-600 text-white">
+        <Card className="bg-gradient-to-r from-red-500 to-red-600 text-white">
           <CardContent className="p-4">
             <div className="flex items-center justify-between">
               <div>
-                <p className="text-orange-100 text-sm">Remaining</p>
+                <p className="text-red-100 text-sm">Remaining Balance</p>
                 <p className="text-2xl font-bold">₦{remainingAmount.toLocaleString()}</p>
               </div>
-              <Clock className="w-8 h-8 text-orange-200" />
+              <AlertCircle className="w-8 h-8 text-red-200" />
             </div>
           </CardContent>
         </Card>
@@ -171,6 +181,7 @@ const PaymentDashboard = () => {
                       <div>
                         <p className="font-medium">₦{payment.amount.toLocaleString()}</p>
                         <p className="text-sm text-gray-600">{payment.date} • {payment.method}</p>
+                        <p className="text-xs text-gray-500">Ref: {payment.reference}</p>
                       </div>
                     </div>
                     <div className="text-right">
@@ -193,28 +204,21 @@ const PaymentDashboard = () => {
           </Card>
         </div>
 
-        {/* Bank Details & Quick Actions */}
+        {/* Bank Details & Contact */}
         <div className="space-y-6">
-          <Card className="border-orange-200 bg-orange-50">
+          <Card className="border-red-200 bg-red-50">
             <CardHeader>
-              <CardTitle className="text-orange-800 flex items-center space-x-2">
+              <CardTitle className="text-red-800 flex items-center space-x-2">
                 <AlertCircle className="w-5 h-5" />
-                <span>Next Payment Due</span>
+                <span>Remaining Balance</span>
               </CardTitle>
             </CardHeader>
             <CardContent>
               <div className="text-center space-y-4">
                 <div>
-                  <p className="text-2xl font-bold text-orange-800">₦100,000</p>
-                  <p className="text-sm text-orange-600">Due: March 15, 2024</p>
+                  <p className="text-3xl font-bold text-red-800">₦{remainingAmount.toLocaleString()}</p>
+                  <p className="text-sm text-red-600">Pay Small Small - Anytime</p>
                 </div>
-                <Button 
-                  variant="outline" 
-                  className="w-full border-orange-300 text-orange-700 hover:bg-orange-100"
-                  onClick={handleSetupReminder}
-                >
-                  🔔 Set Reminder
-                </Button>
               </div>
             </CardContent>
           </Card>
@@ -279,16 +283,54 @@ const PaymentDashboard = () => {
             </CardContent>
           </Card>
 
+          {/* Contact Information */}
           <Card className="bg-emerald-50 border-emerald-200">
             <CardHeader>
-              <CardTitle className="text-emerald-800">💡 Payment Tips</CardTitle>
+              <CardTitle className="text-emerald-800">📞 Contact Us</CardTitle>
+              <CardDescription>Get in touch for payment updates</CardDescription>
+            </CardHeader>
+            <CardContent className="space-y-3">
+              <div>
+                <p className="text-sm font-medium text-emerald-700 mb-2">WhatsApp:</p>
+                {contactInfo.whatsapp.map((number, index) => (
+                  <Button
+                    key={index}
+                    variant="outline"
+                    size="sm"
+                    className="w-full mb-2 border-emerald-300 text-emerald-700 hover:bg-emerald-100"
+                    onClick={() => handleWhatsAppContact(number)}
+                  >
+                    <MessageCircle className="w-4 h-4 mr-2" />
+                    {number}
+                  </Button>
+                ))}
+              </div>
+              
+              <div>
+                <p className="text-sm font-medium text-emerald-700 mb-2">Email:</p>
+                <Button
+                  variant="outline"
+                  size="sm"
+                  className="w-full border-emerald-300 text-emerald-700 hover:bg-emerald-100"
+                  onClick={handleEmailContact}
+                >
+                  <Mail className="w-4 h-4 mr-2" />
+                  {contactInfo.email}
+                </Button>
+              </div>
+            </CardContent>
+          </Card>
+
+          <Card className="bg-blue-50 border-blue-200">
+            <CardHeader>
+              <CardTitle className="text-blue-800">💡 Payment Tips</CardTitle>
             </CardHeader>
             <CardContent>
-              <ul className="text-sm text-emerald-700 space-y-2">
+              <ul className="text-sm text-blue-700 space-y-2">
                 <li>• Keep your payment receipts for records</li>
                 <li>• Include your details as payment reference</li>
-                <li>• Contact support after making payment</li>
-                <li>• Pay early to secure your spot</li>
+                <li>• Contact us immediately after payment</li>
+                <li>• Pay regularly to complete on time</li>
               </ul>
             </CardContent>
           </Card>
