@@ -1,7 +1,6 @@
 
-import { Card, CardContent } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
-import { Badge } from "@/components/ui/badge";
+import { MapPin, Phone, Mail, MessageCircle } from "lucide-react";
 
 interface FooterProps {
   setActiveTab: (tab: string) => void;
@@ -9,144 +8,149 @@ interface FooterProps {
 
 const Footer = ({ setActiveTab }: FooterProps) => {
   const quickLinks = [
-    { label: "Home", tab: "home", icon: "🏠" },
-    { label: "Register", tab: "register", icon: "📝" },
-    { label: "Payment", tab: "payments", icon: "💳" },
-    { label: "Documents", tab: "documents", icon: "📄" },
-    { label: "Support", tab: "support", icon: "💬" }
+    { label: "Home", tab: "home" },
+    { label: "Register", tab: "register" },
+    { label: "Resources", tab: "resources" },
+    { label: "Support", tab: "support" },
   ];
 
-  const contactInfo = [
-    { type: "Phone", value: "+2347067412852", icon: "📞" },
-    { type: "WhatsApp", value: "+2348024764090", icon: "💬" },
-    { type: "Email", value: "adebayoajani23@gmail.com", icon: "📧" },
-    { type: "Address", value: "Lagos, Nigeria", icon: "📍" }
-  ];
+  const handleWhatsAppClick = (number: string) => {
+    window.open(`https://wa.me/${number.replace(/\+/g, '')}`, '_blank');
+  };
+
+  const handleEmailClick = () => {
+    window.open('mailto:adebayoajani23@gmail.com', '_blank');
+  };
+
+  const handleWebsiteClick = () => {
+    window.open('https://toyi.netlify.app/', '_blank');
+  };
 
   return (
-    <footer className="bg-gradient-to-r from-emerald-900 via-blue-900 to-purple-900 text-white py-16 mt-20">
-      <div className="container mx-auto px-4">
+    <footer className="bg-gradient-to-br from-emerald-900 via-emerald-800 to-blue-900 text-white">
+      <div className="container mx-auto px-4 py-12">
         <div className="grid md:grid-cols-4 gap-8">
           {/* Company Info */}
           <div className="space-y-4">
             <div className="flex items-center space-x-3">
-              <div className="w-12 h-12 bg-gradient-to-br from-emerald-400 to-blue-400 rounded-full flex items-center justify-center">
-                <span className="text-white font-bold text-xl">🕌</span>
+              <div className="w-10 h-10 bg-white/20 rounded-full flex items-center justify-center">
+                <span className="text-lg">🕌</span>
               </div>
               <div>
                 <h3 className="text-xl font-bold">Hajj Pathway</h3>
                 <p className="text-emerald-200 text-sm">Pilgrim Platform</p>
               </div>
             </div>
-            <p className="text-gray-300 text-sm leading-relaxed">
-              Your trusted partner for a seamless Hajj pilgrimage experience. 
-              We provide comprehensive services from registration to your sacred journey.
+            <p className="text-emerald-100 text-sm leading-relaxed">
+              Your trusted partner for a spiritual and memorable Hajj journey. We provide comprehensive services to make your pilgrimage smooth and meaningful.
             </p>
-            <div className="flex space-x-2">
-              <Badge className="bg-emerald-600 hover:bg-emerald-700">Trusted</Badge>
-              <Badge className="bg-blue-600 hover:bg-blue-700">Licensed</Badge>
-              <Badge className="bg-purple-600 hover:bg-purple-700">24/7</Badge>
-            </div>
           </div>
 
           {/* Quick Links */}
-          <div className="space-y-4">
-            <h4 className="text-lg font-semibold text-emerald-300">Quick Links</h4>
-            <div className="space-y-2">
-              {quickLinks.map((link) => (
-                <Button
-                  key={link.tab}
-                  variant="ghost"
-                  className="text-gray-300 hover:text-white hover:bg-white/10 justify-start p-2 w-full"
-                  onClick={() => setActiveTab(link.tab)}
-                >
-                  <span className="mr-2">{link.icon}</span>
-                  {link.label}
-                </Button>
+          <div>
+            <h4 className="text-lg font-semibold mb-4 text-white">Quick Links</h4>
+            <ul className="space-y-2">
+              {quickLinks.map((link, index) => (
+                <li key={index}>
+                  <Button
+                    variant="ghost"
+                    className="text-emerald-200 hover:text-white hover:bg-white/10 p-0 h-auto justify-start"
+                    onClick={() => setActiveTab(link.tab)}
+                  >
+                    {link.label}
+                  </Button>
+                </li>
               ))}
+            </ul>
+          </div>
+
+          {/* Contact Info */}
+          <div>
+            <h4 className="text-lg font-semibold mb-4 text-white">Contact Us</h4>
+            <div className="space-y-3">
+              <div className="flex items-start space-x-3">
+                <MapPin className="w-5 h-5 text-emerald-300 mt-0.5" />
+                <div className="text-emerald-100 text-sm">
+                  <p>Amuwo Odofin Muslim Community</p>
+                  <p>Mile 2, Lagos</p>
+                  <p>Amuwo Odofin Central Mosque</p>
+                </div>
+              </div>
+              
+              <div className="flex items-center space-x-3">
+                <Phone className="w-5 h-5 text-emerald-300" />
+                <div className="text-emerald-100 text-sm space-y-1">
+                  <Button
+                    variant="ghost"
+                    className="text-emerald-200 hover:text-white hover:bg-white/10 p-0 h-auto text-sm"
+                    onClick={() => handleWhatsAppClick('+2347067412852')}
+                  >
+                    +2347067412852
+                  </Button>
+                  <Button
+                    variant="ghost"
+                    className="text-emerald-200 hover:text-white hover:bg-white/10 p-0 h-auto text-sm block"
+                    onClick={() => handleWhatsAppClick('+2348024764090')}
+                  >
+                    +2348024764090
+                  </Button>
+                </div>
+              </div>
+              
+              <div className="flex items-center space-x-3">
+                <Mail className="w-5 h-5 text-emerald-300" />
+                <Button
+                  variant="ghost"
+                  className="text-emerald-200 hover:text-white hover:bg-white/10 p-0 h-auto text-sm"
+                  onClick={handleEmailClick}
+                >
+                  adebayoajani23@gmail.com
+                </Button>
+              </div>
             </div>
           </div>
 
           {/* Services */}
-          <div className="space-y-4">
-            <h4 className="text-lg font-semibold text-blue-300">Our Services</h4>
-            <div className="space-y-2 text-sm text-gray-300">
-              <div className="flex items-center space-x-2">
-                <span>✓</span>
-                <span>Online Hajj Registration</span>
-              </div>
-              <div className="flex items-center space-x-2">
-                <span>✓</span>
-                <span>Flexible Payment Plans</span>
-              </div>
-              <div className="flex items-center space-x-2">
-                <span>✓</span>
-                <span>Document Processing</span>
-              </div>
-              <div className="flex items-center space-x-2">
-                <span>✓</span>
-                <span>Visa Assistance</span>
-              </div>
-              <div className="flex items-center space-x-2">
-                <span>✓</span>
-                <span>Travel Arrangements</span>
-              </div>
-              <div className="flex items-center space-x-2">
-                <span>✓</span>
-                <span>24/7 Support</span>
-              </div>
-            </div>
-          </div>
-
-          {/* Contact Info */}
-          <div className="space-y-4">
-            <h4 className="text-lg font-semibold text-purple-300">Contact Us</h4>
-            <div className="space-y-3">
-              {contactInfo.map((contact, index) => (
-                <div key={index} className="flex items-center space-x-3">
-                  <span className="text-lg">{contact.icon}</span>
-                  <div>
-                    <p className="text-xs text-gray-400">{contact.type}</p>
-                    <p className="text-sm text-gray-300">{contact.value}</p>
-                  </div>
-                </div>
-              ))}
+          <div>
+            <h4 className="text-lg font-semibold mb-4 text-white">Our Services</h4>
+            <ul className="space-y-2 text-emerald-100 text-sm">
+              <li>• Hajj Package Booking</li>
+              <li>• Visa Processing</li>
+              <li>• Accommodation</li>
+              <li>• Flight Arrangements</li>
+              <li>• Spiritual Guidance</li>
+              <li>• 24/7 Support</li>
+            </ul>
+            
+            <div className="mt-4">
+              <Button
+                variant="outline"
+                size="sm"
+                className="border-emerald-300 text-emerald-300 hover:bg-emerald-300 hover:text-emerald-900"
+                onClick={handleWebsiteClick}
+              >
+                Visit Our Website
+              </Button>
             </div>
           </div>
         </div>
 
-        {/* Bottom Section */}
-        <div className="border-t border-white/20 mt-12 pt-8">
-          <div className="flex flex-col md:flex-row justify-between items-center space-y-4 md:space-y-0">
-            <div className="text-center md:text-left">
-              <p className="text-gray-300 text-sm">
-                © 2024 Hajj Pathway Platform. All rights reserved.
-              </p>
-              <p className="text-gray-400 text-xs">
-                Licensed by NAHCON • Regulated by Islamic Affairs
-              </p>
-            </div>
-            
-            <div className="flex items-center space-x-6">
-              <div className="text-center">
-                <p className="text-2xl font-bold text-emerald-400">15,000+</p>
-                <p className="text-xs text-gray-400">Pilgrims Served</p>
-              </div>
-              <div className="text-center">
-                <p className="text-2xl font-bold text-blue-400">12,500+</p>
-                <p className="text-xs text-gray-400">Successful Hajj</p>
-              </div>
-              <div className="text-center">
-                <p className="text-2xl font-bold text-purple-400">4.9/5</p>
-                <p className="text-xs text-gray-400">Customer Rating</p>
-              </div>
-            </div>
+        {/* Bottom Bar */}
+        <div className="border-t border-emerald-700 mt-8 pt-8 flex flex-col md:flex-row justify-between items-center">
+          <div className="text-emerald-200 text-sm mb-4 md:mb-0">
+            © 2024 Abdullateef Hajj and Umrah Services Ltd. All rights reserved.
           </div>
           
-          <div className="text-center mt-6">
-            <p className="text-gray-400 text-xs">
-              "And proclaim to mankind the Hajj pilgrimage. They will come to you on foot and on every lean camel; they will come from every distant pass" - Quran 22:27
-            </p>
+          <div className="flex space-x-4">
+            <Button
+              variant="ghost"
+              size="sm"
+              className="text-emerald-200 hover:text-white hover:bg-white/10"
+              onClick={() => handleWhatsAppClick('+2347067412852')}
+            >
+              <MessageCircle className="w-4 h-4 mr-2" />
+              WhatsApp Support
+            </Button>
           </div>
         </div>
       </div>

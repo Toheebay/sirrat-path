@@ -12,12 +12,13 @@ import {
   Eye,
   Download,
   Calendar,
-  User
+  User,
+  X
 } from "lucide-react";
 import { useToast } from "@/hooks/use-toast";
 
 const DocumentUpload = () => {
-  const [documents] = useState([
+  const [documents, setDocuments] = useState([
     {
       id: 1,
       name: "International Passport",
@@ -26,7 +27,8 @@ const DocumentUpload = () => {
       uploadDate: "2024-01-15",
       expiryDate: "2026-08-20",
       required: true,
-      fileSize: "2.3 MB"
+      fileSize: "2.3 MB",
+      fileName: "passport.pdf"
     },
     {
       id: 2,
@@ -35,7 +37,8 @@ const DocumentUpload = () => {
       status: "approved",
       uploadDate: "2024-01-15",
       required: true,
-      fileSize: "1.1 MB"
+      fileSize: "1.1 MB",
+      fileName: "photo.jpg"
     },
     {
       id: 3,
@@ -44,7 +47,8 @@ const DocumentUpload = () => {
       status: "pending",
       uploadDate: "2024-01-16",
       required: true,
-      fileSize: "0.8 MB"
+      fileSize: "0.8 MB",
+      fileName: "vaccination.pdf"
     },
     {
       id: 4,
@@ -53,7 +57,8 @@ const DocumentUpload = () => {
       status: "approved",
       uploadDate: "2024-01-15",
       required: true,
-      fileSize: "1.5 MB"
+      fileSize: "1.5 MB",
+      fileName: "nin.pdf"
     },
     {
       id: 5,
@@ -63,7 +68,8 @@ const DocumentUpload = () => {
       uploadDate: "2024-01-14",
       required: false,
       fileSize: "3.2 MB",
-      rejectionReason: "Document unclear, please upload a clearer version"
+      rejectionReason: "Document unclear, please upload a clearer version",
+      fileName: "medical.pdf"
     },
     {
       id: 6,
@@ -74,6 +80,7 @@ const DocumentUpload = () => {
     }
   ]);
 
+  const [uploadProgress, setUploadProgress] = useState<{[key: number]: number}>({});
   const { toast } = useToast();
 
   const getStatusInfo = (status: string) => {
@@ -91,15 +98,73 @@ const DocumentUpload = () => {
     }
   };
 
-  const approvedCount = documents.filter(doc => doc.status === 'approved').length;
-  const totalRequired = documents.filter(doc => doc.required).length;
-  const completionPercentage = (approvedCount / documents.length) * 100;
+  const handleFileUpload = (docId: number, file: File) => {
+    if (file.size > 5 * 1024 * 1024) { // 5MB limit
+      toast({
+        title: "File Too Large",
+        description: "Please upload a file smaller than 5MB.",
+        variant: "destructive",
+      });
+      return;
+    }
 
-  const handleUpload = (docId: number) => {
-    toast({
-      title: "Upload Started",
-      description: "Your document is being uploaded...",
-    });
+    const allowedTypes = ['application/pdf', 'image/jpeg', 'image/png'];
+    if (!allowedTypes.includes(file.type)) {
+      toast({
+        title: "Invalid File Type",
+        description: "Please upload a PDF, JPG, or PNG file.",
+        variant: "destructive",
+      });
+      return;
+    }
+
+    // Simulate upload progress
+    let progress = 0;
+    const interval = setInterval(() => {
+      progress += 10;
+      setUploadProgress(prev => ({ ...prev, [docId]: progress }));
+      
+      if (progress >= 100) {
+        clearInterval(interval);
+        
+        // Update document status
+        setDocuments(prev => prev.map(doc => 
+          doc.id === docId 
+            ? { 
+                ...doc, 
+                status: 'pending', 
+                uploadDate: new Date().toISOString().split('T')[0],
+                fileSize: `${(file.size / 1024 / 1024).toFixed(1)} MB`,
+                fileName: file.name
+              }
+            : doc
+        ));
+        
+        setUploadProgress(prev => {
+          const newProgress = { ...prev };
+          delete newProgress[docId];
+          return newProgress;
+        });
+        
+        toast({
+          title: "Upload Successful",
+          description: "Your document has been uploaded and is under review.",
+        });
+      }
+    }, 200);
+  };
+
+  const triggerFileUpload = (docId: number) => {
+    const input = document.createElement('input');
+    input.type = 'file';
+    input.accept = '.pdf,.jpg,.jpeg,.png';
+    input.onchange = (e) => {
+      const file = (e.target as HTMLInputElement).files?.[0];
+      if (file) {
+        handleFileUpload(docId, file);
+      }
+    };
+    input.click();
   };
 
   const handleView = (docName: string) => {
@@ -115,6 +180,9 @@ const DocumentUpload = () => {
       description: `Downloading ${docName}...`,
     });
   };
+
+  const approvedCount = documents.filter(doc => doc.status === 'approved').length;
+  const completionPercentage = (approvedCount / documents.length) * 100;
 
   return (
     <div className="max-w-6xl mx-auto space-y-6">
@@ -203,6 +271,7 @@ const DocumentUpload = () => {
         {documents.map((doc) => {
           const statusInfo = getStatusInfo(doc.status);
           const StatusIcon = statusInfo.icon;
+          const isUploading = uploadProgress[doc.id] !== undefined;
 
           return (
             <Card key={doc.id} className={`hover:shadow-lg transition-all duration-300 ${
@@ -228,8 +297,19 @@ const DocumentUpload = () => {
               </CardHeader>
 
               <CardContent className="space-y-4">
+                {/* Upload Progress */}
+                {isUploading && (
+                  <div className="space-y-2">
+                    <div className="flex justify-between text-sm">
+                      <span>Uploading...</span>
+                      <span>{uploadProgress[doc.id]}%</span>
+                    </div>
+                    <Progress value={uploadProgress[doc.id]} className="h-2" />
+                  </div>
+                )}
+
                 {/* Document Info */}
-                {doc.status !== 'missing' && (
+                {doc.status !== 'missing' && !isUploading && (
                   <div className="grid grid-cols-2 gap-4 text-sm">
                     <div className="flex items-center space-x-2">
                       <Calendar className="w-4 h-4 text-gray-500" />
@@ -241,6 +321,12 @@ const DocumentUpload = () => {
                       <FileText className="w-4 h-4 text-gray-500" />
                       <span className="text-gray-600">Size: {doc.fileSize}</span>
                     </div>
+                    {doc.fileName && (
+                      <div className="flex items-center space-x-2 col-span-2">
+                        <User className="w-4 h-4 text-blue-500" />
+                        <span className="text-blue-600 text-xs">{doc.fileName}</span>
+                      </div>
+                    )}
                     {doc.expiryDate && (
                       <div className="flex items-center space-x-2 col-span-2">
                         <AlertCircle className="w-4 h-4 text-orange-500" />
@@ -270,7 +356,8 @@ const DocumentUpload = () => {
                   {doc.status === 'missing' || doc.status === 'rejected' ? (
                     <Button 
                       className="flex-1 bg-blue-600 hover:bg-blue-700" 
-                      onClick={() => handleUpload(doc.id)}
+                      onClick={() => triggerFileUpload(doc.id)}
+                      disabled={isUploading}
                     >
                       <Upload className="w-4 h-4 mr-2" />
                       {doc.status === 'missing' ? 'Upload Document' : 'Re-upload'}
@@ -298,8 +385,9 @@ const DocumentUpload = () => {
                       <Button 
                         variant="outline" 
                         size="sm" 
-                        onClick={() => handleUpload(doc.id)}
+                        onClick={() => triggerFileUpload(doc.id)}
                         className="flex-1"
+                        disabled={isUploading}
                       >
                         <Upload className="w-4 h-4 mr-1" />
                         Replace

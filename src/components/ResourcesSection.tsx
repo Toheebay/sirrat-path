@@ -1,4 +1,3 @@
-
 import { useState } from "react";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
@@ -17,9 +16,13 @@ import {
   Users,
   Heart
 } from "lucide-react";
+import { useToast } from "@/hooks/use-toast";
+import HajjGuideContent from "./HajjGuideContent";
 
 const ResourcesSection = () => {
   const [completedGuides, setCompletedGuides] = useState<number[]>([]);
+  const [currentGuide, setCurrentGuide] = useState<string | null>(null);
+  const { toast } = useToast();
 
   const guides = [
     {
@@ -30,7 +33,7 @@ const ResourcesSection = () => {
       category: "Essential",
       difficulty: "Beginner",
       sections: 8,
-      completed: false
+      type: "first-time" as const
     },
     {
       id: 2,
@@ -40,7 +43,7 @@ const ResourcesSection = () => {
       category: "Spiritual",
       difficulty: "Intermediate",
       sections: 12,
-      completed: false
+      type: "rituals" as const
     },
     {
       id: 3,
@@ -50,7 +53,7 @@ const ResourcesSection = () => {
       category: "Practical",
       difficulty: "Beginner",
       sections: 5,
-      completed: false
+      type: "packing" as const
     },
     {
       id: 4,
@@ -60,7 +63,7 @@ const ResourcesSection = () => {
       category: "Health",
       difficulty: "Intermediate",
       sections: 9,
-      completed: false
+      type: "health" as const
     }
   ];
 
@@ -152,7 +155,45 @@ const ResourcesSection = () => {
     );
   };
 
+  const startReading = (guideType: string) => {
+    setCurrentGuide(guideType);
+  };
+
+  const handleDownload = (guideTitle: string) => {
+    toast({
+      title: "Download Started",
+      description: `Downloading ${guideTitle} as PDF...`,
+    });
+    
+    // Simulate PDF download
+    const link = document.createElement('a');
+    link.href = '#';
+    link.download = `${guideTitle.replace(/\s+/g, '_')}.pdf`;
+    link.click();
+  };
+
   const completionPercentage = (completedGuides.length / guides.length) * 100;
+
+  if (currentGuide) {
+    const guide = guides.find(g => g.type === currentGuide);
+    return (
+      <div className="max-w-4xl mx-auto">
+        <div className="mb-6">
+          <Button 
+            variant="outline" 
+            onClick={() => setCurrentGuide(null)}
+            className="mb-4"
+          >
+            ← Back to Resources
+          </Button>
+        </div>
+        <HajjGuideContent 
+          guideType={currentGuide as any} 
+          onDownload={() => handleDownload(guide?.title || 'Guide')}
+        />
+      </div>
+    );
+  }
 
   return (
     <div className="max-w-6xl mx-auto space-y-6">
@@ -242,26 +283,20 @@ const ResourcesSection = () => {
 
                     <div className="flex space-x-2">
                       <Button 
-                        className={`flex-1 ${
-                          isCompleted 
-                            ? 'bg-emerald-600 hover:bg-emerald-700' 
-                            : 'bg-indigo-600 hover:bg-indigo-700'
-                        }`}
-                        onClick={() => toggleGuideCompletion(guide.id)}
+                        className="flex-1 bg-indigo-600 hover:bg-indigo-700"
+                        onClick={() => {
+                          startReading(guide.type);
+                          toggleGuideCompletion(guide.id);
+                        }}
                       >
-                        {isCompleted ? (
-                          <>
-                            <CheckCircle className="w-4 h-4 mr-2" />
-                            Completed
-                          </>
-                        ) : (
-                          <>
-                            <Play className="w-4 h-4 mr-2" />
-                            Start Reading
-                          </>
-                        )}
+                        <Play className="w-4 h-4 mr-2" />
+                        Start Reading
                       </Button>
-                      <Button variant="outline" size="icon">
+                      <Button 
+                        variant="outline" 
+                        size="icon"
+                        onClick={() => handleDownload(guide.title)}
+                      >
                         <Download className="w-4 h-4" />
                       </Button>
                     </div>

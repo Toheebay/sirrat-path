@@ -41,7 +41,7 @@ const NewsMarquee = () => {
         </div>
       </div>
       
-      <style jsx>{`
+      <style>{`
         @keyframes marquee {
           0% {
             transform: translateX(0%);
