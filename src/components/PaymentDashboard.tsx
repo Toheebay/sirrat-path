@@ -13,16 +13,18 @@ import {
   AlertCircle,
   TrendingUp,
   Wallet,
-  Bell
+  Bell,
+  Building,
+  Copy
 } from "lucide-react";
 import { useToast } from "@/hooks/use-toast";
 
 const PaymentDashboard = () => {
   const [paymentHistory] = useState([
-    { id: 1, date: "2024-01-15", amount: 100000, status: "completed", method: "Paystack" },
+    { id: 1, date: "2024-01-15", amount: 100000, status: "completed", method: "Bank Transfer" },
     { id: 2, date: "2024-02-15", amount: 100000, status: "completed", method: "Bank Transfer" },
-    { id: 3, date: "2024-03-15", amount: 100000, status: "pending", method: "Paystack" },
-    { id: 4, date: "2024-04-15", amount: 100000, status: "upcoming", method: "Auto-debit" },
+    { id: 3, date: "2024-03-15", amount: 100000, status: "pending", method: "Bank Transfer" },
+    { id: 4, date: "2024-04-15", amount: 100000, status: "upcoming", method: "Bank Transfer" },
   ]);
 
   const { toast } = useToast();
@@ -33,10 +35,17 @@ const PaymentDashboard = () => {
   const remainingAmount = totalAmount - paidAmount;
   const monthsRemaining = Math.ceil(remainingAmount / 100000);
 
-  const handlePayNow = () => {
+  const bankDetails = {
+    accountName: "Abdullateef Hajj and Umrah integrated Service Ltd.",
+    bankName: "Lotus Bank",
+    accountNumber: "1000019078"
+  };
+
+  const copyToClipboard = (text: string) => {
+    navigator.clipboard.writeText(text);
     toast({
-      title: "Payment Initiated",
-      description: "Redirecting to payment gateway...",
+      title: "Copied!",
+      description: "Account details copied to clipboard",
     });
   };
 
@@ -184,7 +193,7 @@ const PaymentDashboard = () => {
           </Card>
         </div>
 
-        {/* Quick Actions */}
+        {/* Bank Details & Quick Actions */}
         <div className="space-y-6">
           <Card className="border-orange-200 bg-orange-50">
             <CardHeader>
@@ -200,12 +209,6 @@ const PaymentDashboard = () => {
                   <p className="text-sm text-orange-600">Due: March 15, 2024</p>
                 </div>
                 <Button 
-                  className="w-full bg-orange-600 hover:bg-orange-700"
-                  onClick={handlePayNow}
-                >
-                  💳 Pay Now
-                </Button>
-                <Button 
                   variant="outline" 
                   className="w-full border-orange-300 text-orange-700 hover:bg-orange-100"
                   onClick={handleSetupReminder}
@@ -218,38 +221,61 @@ const PaymentDashboard = () => {
 
           <Card>
             <CardHeader>
-              <CardTitle>Payment Methods</CardTitle>
+              <CardTitle className="flex items-center space-x-2">
+                <Building className="w-5 h-5 text-blue-600" />
+                <span>Bank Details</span>
+              </CardTitle>
+              <CardDescription>Make payments to this account</CardDescription>
             </CardHeader>
-            <CardContent className="space-y-3">
-              <div className="flex items-center justify-between p-3 border rounded-lg">
-                <div className="flex items-center space-x-3">
-                  <div className="w-8 h-8 bg-blue-100 rounded-full flex items-center justify-center">
-                    <CreditCard className="w-4 h-4 text-blue-600" />
-                  </div>
-                  <div>
-                    <p className="font-medium text-sm">Paystack</p>
-                    <p className="text-xs text-gray-600">Primary</p>
-                  </div>
-                </div>
-                <Badge className="bg-emerald-100 text-emerald-800">Active</Badge>
-              </div>
-              
-              <div className="flex items-center justify-between p-3 border rounded-lg">
-                <div className="flex items-center space-x-3">
-                  <div className="w-8 h-8 bg-green-100 rounded-full flex items-center justify-center">
-                    <Wallet className="w-4 h-4 text-green-600" />
-                  </div>
-                  <div>
-                    <p className="font-medium text-sm">Bank Transfer</p>
-                    <p className="text-xs text-gray-600">Secondary</p>
+            <CardContent className="space-y-4">
+              <div className="p-4 bg-blue-50 rounded-lg space-y-3">
+                <div>
+                  <p className="text-sm text-gray-600">Account Name</p>
+                  <div className="flex items-center justify-between">
+                    <p className="font-medium text-sm">{bankDetails.accountName}</p>
+                    <Button
+                      variant="ghost"
+                      size="sm"
+                      onClick={() => copyToClipboard(bankDetails.accountName)}
+                    >
+                      <Copy className="w-4 h-4" />
+                    </Button>
                   </div>
                 </div>
-                <Badge variant="outline">Backup</Badge>
+                
+                <div>
+                  <p className="text-sm text-gray-600">Bank Name</p>
+                  <div className="flex items-center justify-between">
+                    <p className="font-medium">{bankDetails.bankName}</p>
+                    <Button
+                      variant="ghost"
+                      size="sm"
+                      onClick={() => copyToClipboard(bankDetails.bankName)}
+                    >
+                      <Copy className="w-4 h-4" />
+                    </Button>
+                  </div>
+                </div>
+                
+                <div>
+                  <p className="text-sm text-gray-600">Account Number</p>
+                  <div className="flex items-center justify-between">
+                    <p className="font-bold text-lg">{bankDetails.accountNumber}</p>
+                    <Button
+                      variant="ghost"
+                      size="sm"
+                      onClick={() => copyToClipboard(bankDetails.accountNumber)}
+                    >
+                      <Copy className="w-4 h-4" />
+                    </Button>
+                  </div>
+                </div>
               </div>
 
-              <Button variant="outline" className="w-full mt-4">
-                + Add Payment Method
-              </Button>
+              <div className="text-xs text-gray-600 bg-yellow-50 p-3 rounded-lg">
+                <p className="font-medium text-yellow-800 mb-1">⚠️ Important:</p>
+                <p>Please include your name and phone number as payment reference when making transfers.</p>
+              </div>
             </CardContent>
           </Card>
 
@@ -259,10 +285,10 @@ const PaymentDashboard = () => {
             </CardHeader>
             <CardContent>
               <ul className="text-sm text-emerald-700 space-y-2">
-                <li>• Set up auto-debit for hassle-free payments</li>
-                <li>• Pay early to avoid late fees</li>
-                <li>• Keep payment receipts for records</li>
-                <li>• Contact support for payment issues</li>
+                <li>• Keep your payment receipts for records</li>
+                <li>• Include your details as payment reference</li>
+                <li>• Contact support after making payment</li>
+                <li>• Pay early to secure your spot</li>
               </ul>
             </CardContent>
           </Card>

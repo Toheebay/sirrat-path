@@ -2,7 +2,7 @@
 import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
-import { CheckCircle, Users, CreditCard, FileText } from "lucide-react";
+import { CheckCircle, Users, CreditCard, FileText, Plane, Home, Utensils } from "lucide-react";
 
 interface HeroSectionProps {
   setActiveTab: (tab: string) => void;
@@ -12,8 +12,15 @@ const HeroSection = ({ setActiveTab }: HeroSectionProps) => {
   const stats = [
     { label: "Registered Pilgrims", value: "15,000+", icon: Users },
     { label: "Successful Hajj", value: "12,500+", icon: CheckCircle },
-    { label: "Payment Plans", value: "Flexible", icon: CreditCard },
+    { label: "Lagos-Medinah Flights", value: "Direct", icon: Plane },
     { label: "Documents Processed", value: "25,000+", icon: FileText },
+  ];
+
+  const hajjFeatures = [
+    { icon: Plane, text: "Direct flight Lagos to Medinah and back" },
+    { icon: Home, text: "Accommodation close to Haram in Makkah & Medinah" },
+    { icon: Utensils, text: "Nigerian feeding twice daily" },
+    { icon: CheckCircle, text: "Complete Hajj package with honorable Iyepe" },
   ];
 
   return (
@@ -33,15 +40,16 @@ const HeroSection = ({ setActiveTab }: HeroSectionProps) => {
               </Badge>
               
               <h1 className="text-4xl md:text-5xl lg:text-6xl font-bold text-gray-900 mb-6 leading-tight">
-                Your Journey to
+                Perform Hajj 2026
                 <span className="text-transparent bg-clip-text bg-gradient-to-r from-emerald-600 to-blue-600">
-                  {" "}Sacred Hajj
+                  {" "}with Honorable Iyepe
                 </span>
               </h1>
               
               <p className="text-lg md:text-xl text-gray-600 mb-8 leading-relaxed">
-                Complete your Hajj pilgrimage with ease. Register online, pay in flexible installments, 
-                upload documents, and get real-time updates on your sacred journey.
+                Complete your Hajj pilgrimage with ease. Our flight from Lagos to Medinah and back to Lagos, 
+                we will take care of accommodation. Our accommodation in Makkah and Medinah is close to Haram (mosque). 
+                We will provide Nigerian feeding twice a day in Makkah and Medinah.
               </p>
 
               <div className="flex flex-col sm:flex-row gap-4 justify-center lg:justify-start mb-12">
@@ -62,24 +70,14 @@ const HeroSection = ({ setActiveTab }: HeroSectionProps) => {
                 </Button>
               </div>
 
-              {/* Quick Features */}
-              <div className="grid grid-cols-2 gap-4 max-w-md mx-auto lg:mx-0">
-                <div className="flex items-center space-x-2">
-                  <CheckCircle className="w-5 h-5 text-emerald-600" />
-                  <span className="text-sm font-medium text-gray-700">Easy Registration</span>
-                </div>
-                <div className="flex items-center space-x-2">
-                  <CheckCircle className="w-5 h-5 text-emerald-600" />
-                  <span className="text-sm font-medium text-gray-700">Flexible Payments</span>
-                </div>
-                <div className="flex items-center space-x-2">
-                  <CheckCircle className="w-5 h-5 text-emerald-600" />
-                  <span className="text-sm font-medium text-gray-700">Document Upload</span>
-                </div>
-                <div className="flex items-center space-x-2">
-                  <CheckCircle className="w-5 h-5 text-emerald-600" />
-                  <span className="text-sm font-medium text-gray-700">24/7 Support</span>
-                </div>
+              {/* Hajj 2026 Features */}
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 max-w-2xl mx-auto lg:mx-0 mb-8">
+                {hajjFeatures.map((feature, index) => (
+                  <div key={index} className="flex items-center space-x-3 p-3 bg-white/60 rounded-lg">
+                    <feature.icon className="w-5 h-5 text-emerald-600 flex-shrink-0" />
+                    <span className="text-sm font-medium text-gray-700">{feature.text}</span>
+                  </div>
+                ))}
               </div>
             </div>
 
