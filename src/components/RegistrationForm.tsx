@@ -1,4 +1,3 @@
-
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
@@ -6,7 +5,7 @@ import { ExternalLink, FileText, Clock, CheckCircle } from "lucide-react";
 
 const RegistrationForm = () => {
   const handleGoogleFormRedirect = () => {
-    window.open("https://forms.gle/your-google-form-id", "_blank");
+    window.open("https://forms.gle/mm1XuzCUpFGLDcxV7", "_blank");
   };
 
   return (
