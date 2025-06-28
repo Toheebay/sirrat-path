@@ -28,24 +28,31 @@ const Index = () => {
   useEffect(() => {
     // Set up auth state listener
     const { data: { subscription } } = supabase.auth.onAuthStateChange(
-      (event, session) => {
+      async (event, session) => {
+        console.log('Auth state changed:', event, session?.user?.email);
+        
         setSession(session);
         setUser(session?.user ?? null);
         
-        if (session?.user) {
+        if (session?.user && event === 'SIGNED_IN') {
           // Fetch user profile to get user type
-          setTimeout(async () => {
-            const { data: profile } = await supabase
+          try {
+            const { data: profile, error } = await supabase
               .from('profiles')
               .select('user_type')
               .eq('id', session.user.id)
               .single();
             
-            if (profile) {
+            if (error) {
+              console.error('Error fetching profile:', error);
+            } else if (profile) {
+              console.log('User profile:', profile);
               setUserType(profile.user_type as "pilgrim" | "agent" | "admin");
               setIsLoggedIn(true);
             }
-          }, 0);
+          } catch (error) {
+            console.error('Profile fetch error:', error);
+          }
         } else {
           setIsLoggedIn(false);
           setUserType("pilgrim");
@@ -55,32 +62,49 @@ const Index = () => {
     );
 
     // Check for existing session
-    supabase.auth.getSession().then(({ data: { session } }) => {
-      setSession(session);
-      setUser(session?.user ?? null);
-      
-      if (session?.user) {
-        supabase
-          .from('profiles')
-          .select('user_type')
-          .eq('id', session.user.id)
-          .single()
-          .then(({ data: profile }) => {
-            if (profile) {
-              setUserType(profile.user_type as "pilgrim" | "agent" | "admin");
-              setIsLoggedIn(true);
-            }
-            setLoading(false);
-          });
-      } else {
+    const checkSession = async () => {
+      try {
+        const { data: { session }, error } = await supabase.auth.getSession();
+        
+        if (error) {
+          console.error('Session error:', error);
+          setLoading(false);
+          return;
+        }
+
+        console.log('Initial session check:', session?.user?.email);
+        
+        if (session?.user) {
+          const { data: profile, error: profileError } = await supabase
+            .from('profiles')
+            .select('user_type')
+            .eq('id', session.user.id)
+            .single();
+          
+          if (profileError) {
+            console.error('Profile error:', profileError);
+          } else if (profile) {
+            console.log('Initial profile:', profile);
+            setUser(session.user);
+            setSession(session);
+            setUserType(profile.user_type as "pilgrim" | "agent" | "admin");
+            setIsLoggedIn(true);
+          }
+        }
+      } catch (error) {
+        console.error('Session check error:', error);
+      } finally {
         setLoading(false);
       }
-    });
+    };
+
+    checkSession();
 
     return () => subscription.unsubscribe();
   }, []);
 
   const handleAuthSuccess = (user: User, userType: string) => {
+    console.log('Auth success:', user.email, userType);
     setUser(user);
     setUserType(userType as "pilgrim" | "agent" | "admin");
     setIsLoggedIn(true);
@@ -88,12 +112,20 @@ const Index = () => {
   };
 
   const handleLogout = async () => {
-    await supabase.auth.signOut();
-    setIsLoggedIn(false);
-    setUser(null);
-    setSession(null);
-    setUserType("pilgrim");
-    setActiveTab("home");
+    try {
+      const { error } = await supabase.auth.signOut();
+      if (error) {
+        console.error('Logout error:', error);
+      } else {
+        setIsLoggedIn(false);
+        setUser(null);
+        setSession(null);
+        setUserType("pilgrim");
+        setActiveTab("home");
+      }
+    } catch (error) {
+      console.error('Logout error:', error);
+    }
   };
 
   if (loading) {

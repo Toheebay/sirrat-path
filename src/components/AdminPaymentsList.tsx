@@ -1,10 +1,9 @@
-
 import { useState, useEffect } from "react";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
-import { Eye, Download, CheckCircle, XCircle, Clock } from "lucide-react";
+import { Eye, CheckCircle, XCircle, Clock } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
 import { useToast } from "@/hooks/use-toast";
 
@@ -56,14 +55,20 @@ const AdminPaymentsList = () => {
 
       if (error) throw error;
       
-      // Transform the data to match our interface
-      const transformedData = data?.map(payment => ({
+      // Filter out any payments where profiles query failed
+      const validPayments = data?.filter(payment => 
+        payment.profiles && 
+        typeof payment.profiles === 'object' && 
+        'username' in payment.profiles && 
+        'email' in payment.profiles
+      ).map(payment => ({
         ...payment,
         amount: Number(payment.amount)
       })) as Payment[];
       
-      setPayments(transformedData || []);
+      setPayments(validPayments || []);
     } catch (error: any) {
+      console.error('Error fetching payments:', error);
       toast({
         title: "Error",
         description: "Failed to fetch payments",
@@ -203,7 +208,7 @@ const AdminPaymentsList = () => {
             <Table>
               <TableHeader>
                 <TableRow>
-                  <TableHead>Usuario</TableHead>
+                  <TableHead>User</TableHead>
                   <TableHead>Amount</TableHead>
                   <TableHead>Date</TableHead>
                   <TableHead>Reference</TableHead>
@@ -281,6 +286,43 @@ const AdminPaymentsList = () => {
       </Card>
     </div>
   );
+};
+
+const getStatusColor = (status: string) => {
+  switch (status) {
+    case 'verified': return 'bg-green-100 text-green-800';
+    case 'rejected': return 'bg-red-100 text-red-800';
+    default: return 'bg-yellow-100 text-yellow-800';
+  }
+};
+
+const getStatusIcon = (status: string) => {
+  switch (status) {
+    case 'verified': return <CheckCircle className="w-4 h-4" />;
+    case 'rejected': return <XCircle className="w-4 h-4" />;
+    default: return <Clock className="w-4 h-4" />;
+  }
+};
+
+const fetchStats = async () => {
+  try {
+    const { data, error } = await supabase
+      .from('payments')
+      .select('status, amount');
+
+    if (error) throw error;
+
+    const total = data?.length || 0;
+    const verified = data?.filter(p => p.status === 'verified').length || 0;
+    const pending = data?.filter(p => p.status === 'pending').length || 0;
+    const rejected = data?.filter(p => p.status === 'rejected').length || 0;
+    const totalAmount = data?.reduce((sum, p) => sum + Number(p.amount), 0) || 0;
+
+    return { total, verified, pending, rejected, totalAmount };
+  } catch (error: any) {
+    console.error('Error fetching stats:', error);
+    return { total: 0, verified: 0, pending: 0, rejected: 0, totalAmount: 0 };
+  }
 };
 
 export default AdminPaymentsList;

@@ -47,6 +47,7 @@ const AuthPage = ({ onAuthSuccess }: AuthPageProps) => {
 
     try {
       if (isLogin) {
+        // Handle login
         const { data, error } = await supabase.auth.signInWithPassword({
           email,
           password,
@@ -55,6 +56,7 @@ const AuthPage = ({ onAuthSuccess }: AuthPageProps) => {
         if (error) throw error;
 
         if (data.user) {
+          // Fetch user profile to get user type
           const { data: profile } = await supabase
             .from('profiles')
             .select('user_type')
@@ -67,9 +69,12 @@ const AuthPage = ({ onAuthSuccess }: AuthPageProps) => {
               title: "Login Successful",
               description: "Welcome back!",
             });
+          } else {
+            throw new Error("User profile not found");
           }
         }
       } else {
+        // Handle registration
         const { data, error } = await supabase.auth.signUp({
           email,
           password,
@@ -84,15 +89,22 @@ const AuthPage = ({ onAuthSuccess }: AuthPageProps) => {
 
         if (error) throw error;
 
-        toast({
-          title: "Registration Successful",
-          description: "Please check your email to confirm your account.",
-        });
+        if (data.user) {
+          toast({
+            title: "Registration Successful",
+            description: "Please check your email to confirm your account, then you can login.",
+          });
+          
+          // Switch to login mode after successful registration
+          setIsLogin(true);
+          setPassword("");
+        }
       }
     } catch (error: any) {
+      console.error('Auth error:', error);
       toast({
         title: "Error",
-        description: error.message,
+        description: error.message || "Authentication failed",
         variant: "destructive",
       });
     } finally {
@@ -121,6 +133,7 @@ const AuthPage = ({ onAuthSuccess }: AuthPageProps) => {
                     value={username}
                     onChange={(e) => setUsername(e.target.value)}
                     required={!isLogin}
+                    placeholder="Enter your username"
                   />
                 </div>
                 
@@ -148,6 +161,7 @@ const AuthPage = ({ onAuthSuccess }: AuthPageProps) => {
                 value={email}
                 onChange={(e) => setEmail(e.target.value)}
                 required
+                placeholder="Enter your email"
               />
             </div>
 
@@ -159,6 +173,7 @@ const AuthPage = ({ onAuthSuccess }: AuthPageProps) => {
                 value={password}
                 onChange={(e) => setPassword(e.target.value)}
                 required
+                placeholder="Enter your password"
               />
             </div>
 
