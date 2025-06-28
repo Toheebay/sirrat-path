@@ -5,147 +5,160 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
-import { Badge } from "@/components/ui/badge";
-import { Upload, FileImage, CheckCircle, AlertCircle } from "lucide-react";
 import { useToast } from "@/hooks/use-toast";
 import { supabase } from "@/integrations/supabase/client";
+import { Upload, X } from "lucide-react";
 
-const PaymentUpload = () => {
+interface PaymentUploadProps {
+  onClose: () => void;
+  onSuccess: () => void;
+}
+
+const PaymentUpload = ({ onClose, onSuccess }: PaymentUploadProps) => {
   const [amount, setAmount] = useState("");
   const [paymentDate, setPaymentDate] = useState("");
   const [referenceNumber, setReferenceNumber] = useState("");
   const [notes, setNotes] = useState("");
-  const [receipt, setReceipt] = useState<File | null>(null);
-  const [uploading, setUploading] = useState(false);
+  const [receiptFile, setReceiptFile] = useState<File | null>(null);
+  const [loading, setLoading] = useState(false);
   const { toast } = useToast();
 
-  const handleReceiptUpload = (e: React.ChangeEvent<HTMLInputElement>) => {
-    const file = e.target.files?.[0];
+  const handleFileUpload = (event: React.ChangeEvent<HTMLInputElement>) => {
+    const file = event.target.files?.[0];
     if (file) {
+      // Check file size (max 5MB)
       if (file.size > 5 * 1024 * 1024) {
         toast({
           title: "File too large",
-          description: "Receipt image must be less than 5MB",
+          description: "Please select a file smaller than 5MB",
           variant: "destructive",
         });
         return;
       }
-      setReceipt(file);
+      setReceiptFile(file);
     }
+  };
+
+  const uploadReceipt = async (userId: string, paymentId: string): Promise<string | null> => {
+    if (!receiptFile) return null;
+
+    const fileExt = receiptFile.name.split('.').pop();
+    const fileName = `${userId}/${paymentId}.${fileExt}`;
+
+    const { data, error } = await supabase.storage
+      .from('payment-receipts')
+      .upload(fileName, receiptFile);
+
+    if (error) throw error;
+
+    // Get public URL
+    const { data: { publicUrl } } = supabase.storage
+      .from('payment-receipts')
+      .getPublicUrl(fileName);
+
+    return publicUrl;
   };
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    if (!receipt) {
-      toast({
-        title: "Receipt Required",
-        description: "Please upload your payment receipt",
-        variant: "destructive",
-      });
-      return;
-    }
-
-    setUploading(true);
+    setLoading(true);
 
     try {
       const { data: { user } } = await supabase.auth.getUser();
-      if (!user) throw new Error("Not authenticated");
+      if (!user) throw new Error("User not authenticated");
 
-      // Upload receipt to storage
-      const fileName = `${user.id}/${Date.now()}-${receipt.name}`;
-      const { data: uploadData, error: uploadError } = await supabase.storage
-        .from('payment-receipts')
-        .upload(fileName, receipt);
-
-      if (uploadError) throw uploadError;
-
-      const receiptUrl = `${supabase.supabaseUrl}/storage/v1/object/public/payment-receipts/${uploadData.path}`;
-
-      // Insert payment record
-      const { error: insertError } = await supabase
+      // Create payment record first
+      const { data: payment, error: paymentError } = await supabase
         .from('payments')
-        .insert({
-          user_id: user.id,
-          amount: parseFloat(amount),
-          payment_date: paymentDate,
-          reference_number: referenceNumber,
-          receipt_url: receiptUrl,
-          notes: notes,
-          agent_code: '952'
-        });
+        .insert([
+          {
+            user_id: user.id,
+            amount: parseFloat(amount),
+            payment_date: paymentDate,
+            reference_number: referenceNumber,
+            agent_code: "952", // Default agent code
+            payment_method: "Bank Transfer",
+            notes,
+            status: "pending"
+          }
+        ])
+        .select()
+        .single();
 
-      if (insertError) throw insertError;
+      if (paymentError) throw paymentError;
+
+      // Upload receipt if provided
+      let receiptUrl = null;
+      if (receiptFile && payment) {
+        receiptUrl = await uploadReceipt(user.id, payment.id);
+        
+        // Update payment with receipt URL
+        const { error: updateError } = await supabase
+          .from('payments')
+          .update({ receipt_url: receiptUrl })
+          .eq('id', payment.id);
+
+        if (updateError) throw updateError;
+      }
 
       toast({
-        title: "Payment Uploaded Successfully",
-        description: "Your payment will be verified by admin soon.",
+        title: "Payment Submitted",
+        description: "Your payment has been submitted for verification",
       });
 
-      // Reset form
-      setAmount("");
-      setPaymentDate("");
-      setReferenceNumber("");
-      setNotes("");
-      setReceipt(null);
-      
+      onSuccess();
     } catch (error: any) {
+      console.error('Payment submission error:', error);
       toast({
-        title: "Upload Failed",
+        title: "Submission Failed",
         description: error.message,
         variant: "destructive",
       });
     } finally {
-      setUploading(false);
+      setLoading(false);
     }
   };
 
   return (
-    <div className="max-w-2xl mx-auto">
-      <Card>
-        <CardHeader>
-          <CardTitle className="flex items-center space-x-2">
-            <Upload className="w-6 h-6 text-emerald-600" />
-            <span>Upload Payment Receipt</span>
-          </CardTitle>
-          <CardDescription>
-            Upload your bank transfer receipt for payment verification
-          </CardDescription>
+    <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50 p-4">
+      <Card className="w-full max-w-md">
+        <CardHeader className="flex flex-row items-center justify-between">
+          <div>
+            <CardTitle>Submit Payment</CardTitle>
+            <CardDescription>Upload your payment details and receipt</CardDescription>
+          </div>
+          <Button variant="ghost" size="sm" onClick={onClose}>
+            <X className="w-4 h-4" />
+          </Button>
         </CardHeader>
         <CardContent>
-          <div className="mb-6 p-4 bg-blue-50 rounded-lg">
-            <h4 className="font-semibold text-blue-800 mb-2">📝 Important Reminder:</h4>
-            <div className="text-sm text-blue-700 space-y-1">
-              <p>• Always include <strong>Agent Code: 952</strong> in your transfer reference</p>
-              <p>• Include your name and phone number in the transfer description</p>
-              <p>• Upload a clear photo of your receipt for quick verification</p>
+          <form onSubmit={handleSubmit} className="space-y-4">
+            <div className="bg-emerald-50 p-3 rounded-lg text-sm">
+              <p className="font-medium text-emerald-800">Agent Code: 952</p>
+              <p className="text-emerald-700">Use this code as reference when making your transfer</p>
             </div>
-          </div>
 
-          <form onSubmit={handleSubmit} className="space-y-6">
-            <div className="grid md:grid-cols-2 gap-4">
-              <div>
-                <Label htmlFor="amount">Amount Paid (₦)</Label>
-                <Input
-                  id="amount"
-                  type="number"
-                  step="0.01"
-                  value={amount}
-                  onChange={(e) => setAmount(e.target.value)}
-                  placeholder="e.g., 500000"
-                  required
-                />
-              </div>
+            <div>
+              <Label htmlFor="amount">Amount (₦)</Label>
+              <Input
+                id="amount"
+                type="number"
+                value={amount}
+                onChange={(e) => setAmount(e.target.value)}
+                placeholder="Enter payment amount"
+                required
+              />
+            </div>
 
-              <div>
-                <Label htmlFor="paymentDate">Payment Date</Label>
-                <Input
-                  id="paymentDate"
-                  type="date"
-                  value={paymentDate}
-                  onChange={(e) => setPaymentDate(e.target.value)}
-                  required
-                />
-              </div>
+            <div>
+              <Label htmlFor="paymentDate">Payment Date</Label>
+              <Input
+                id="paymentDate"
+                type="date"
+                value={paymentDate}
+                onChange={(e) => setPaymentDate(e.target.value)}
+                required
+              />
             </div>
 
             <div>
@@ -155,41 +168,24 @@ const PaymentUpload = () => {
                 type="text"
                 value={referenceNumber}
                 onChange={(e) => setReferenceNumber(e.target.value)}
-                placeholder="Transfer reference number"
-                required
+                placeholder="Transaction reference number"
               />
             </div>
 
             <div>
-              <Label htmlFor="receipt">Upload Receipt Image</Label>
-              <div className="mt-2">
-                <input
-                  id="receipt"
-                  type="file"
-                  accept="image/*"
-                  onChange={handleReceiptUpload}
-                  className="hidden"
-                  required
-                />
-                <label
-                  htmlFor="receipt"
-                  className="cursor-pointer flex items-center justify-center w-full h-32 border-2 border-dashed border-gray-300 rounded-lg hover:bg-gray-50 transition-colors"
-                >
-                  {receipt ? (
-                    <div className="text-center">
-                      <FileImage className="w-8 h-8 mx-auto mb-2 text-green-600" />
-                      <p className="text-sm font-medium text-green-600">{receipt.name}</p>
-                      <p className="text-xs text-gray-500">Click to change</p>
-                    </div>
-                  ) : (
-                    <div className="text-center">
-                      <Upload className="w-8 h-8 mx-auto mb-2 text-gray-400" />
-                      <p className="text-sm text-gray-600">Click to upload receipt</p>
-                      <p className="text-xs text-gray-500">PNG, JPG up to 5MB</p>
-                    </div>
-                  )}
-                </label>
-              </div>
+              <Label htmlFor="receipt">Payment Receipt</Label>
+              <Input
+                id="receipt"
+                type="file"
+                accept="image/*,.pdf"
+                onChange={handleFileUpload}
+                className="file:mr-4 file:py-2 file:px-4 file:rounded-full file:border-0 file:text-sm file:font-semibold file:bg-emerald-50 file:text-emerald-700 hover:file:bg-emerald-100"
+              />
+              {receiptFile && (
+                <p className="text-sm text-gray-600 mt-1">
+                  Selected: {receiptFile.name}
+                </p>
+              )}
             </div>
 
             <div>
@@ -198,14 +194,20 @@ const PaymentUpload = () => {
                 id="notes"
                 value={notes}
                 onChange={(e) => setNotes(e.target.value)}
-                placeholder="Any additional information about this payment..."
+                placeholder="Any additional information about this payment"
                 rows={3}
               />
             </div>
 
-            <Button type="submit" className="w-full" disabled={uploading}>
-              {uploading ? "Uploading..." : "Submit Payment Receipt"}
-            </Button>
+            <div className="flex space-x-2">
+              <Button type="submit" className="flex-1" disabled={loading}>
+                {loading ? "Submitting..." : "Submit Payment"}
+                <Upload className="w-4 h-4 ml-2" />
+              </Button>
+              <Button type="button" variant="outline" onClick={onClose}>
+                Cancel
+              </Button>
+            </div>
           </form>
         </CardContent>
       </Card>

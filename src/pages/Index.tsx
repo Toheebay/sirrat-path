@@ -42,7 +42,7 @@ const Index = () => {
               .single();
             
             if (profile) {
-              setUserType(profile.user_type);
+              setUserType(profile.user_type as "pilgrim" | "agent" | "admin");
               setIsLoggedIn(true);
             }
           }, 0);
@@ -67,7 +67,7 @@ const Index = () => {
           .single()
           .then(({ data: profile }) => {
             if (profile) {
-              setUserType(profile.user_type);
+              setUserType(profile.user_type as "pilgrim" | "agent" | "admin");
               setIsLoggedIn(true);
             }
             setLoading(false);
@@ -117,7 +117,7 @@ const Index = () => {
       case "home":
         return (
           <div className="space-y-12">
-            <HeroSection />
+            <HeroSection setActiveTab={setActiveTab} />
             <FeatureCards />
           </div>
         );
@@ -139,7 +139,7 @@ const Index = () => {
       default:
         return (
           <div className="space-y-12">
-            <HeroSection />
+            <HeroSection setActiveTab={setActiveTab} />
             <FeatureCards />
           </div>
         );
@@ -161,7 +161,7 @@ const Index = () => {
         {renderActiveTab()}
       </main>
       
-      <Footer />
+      <Footer setActiveTab={setActiveTab} />
     </div>
   );
 };

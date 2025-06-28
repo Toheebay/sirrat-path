@@ -176,14 +176,6 @@ const AuthPage = ({ onAuthSuccess }: AuthPageProps) => {
               {isLogin ? "Don't have an account? Register" : "Already have an account? Login"}
             </Button>
           </div>
-
-          {isLogin && (
-            <div className="mt-4 text-xs text-gray-600 space-y-1">
-              <p><strong>Admin Credentials:</strong></p>
-              <p>Email: adebayoajani23@toheebay.online</p>
-              <p>Password: Bigtoheeb1@#?</p>
-            </div>
-          )}
         </CardContent>
       </Card>
     </div>

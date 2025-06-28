@@ -72,7 +72,7 @@ const LoginForm = ({ onLogin, onClose }: LoginFormProps) => {
             .single();
 
           if (profile) {
-            onLogin(profile.user_type, profile.username);
+            onLogin(profile.user_type as "pilgrim" | "agent" | "admin", profile.username);
             toast({
               title: "Login Successful",
               description: `Welcome back, ${profile.username}!`,
@@ -103,17 +103,9 @@ const LoginForm = ({ onLogin, onClose }: LoginFormProps) => {
         <CardContent>
           <form onSubmit={handleSubmit} className="space-y-4">
             {!isRegistering && (
-              <div className="mb-4 p-3 bg-blue-50 rounded-lg text-sm">
-                <p className="font-medium text-blue-800">Admin Access:</p>
-                <p className="text-blue-700">Username: Adebayo</p>
-                <p className="text-blue-700">Password: Bigtoheeb1@#?</p>
-              </div>
-            )}
-
-            {!isRegistering && (
               <div>
                 <Label htmlFor="userType">Account Type</Label>
-                <Select value={userType} onValueChange={(value: any) => setUserType(value)}>
+                <Select value={userType} onValueChange={(value: "pilgrim" | "agent" | "admin") => setUserType(value)}>
                   <SelectTrigger>
                     <SelectValue placeholder="Select account type" />
                   </SelectTrigger>
@@ -155,7 +147,7 @@ const LoginForm = ({ onLogin, onClose }: LoginFormProps) => {
             {isRegistering && (
               <div>
                 <Label htmlFor="userType">Account Type</Label>
-                <Select value={userType} onValueChange={(value: any) => setUserType(value)}>
+                <Select value={userType} onValueChange={(value: "pilgrim" | "agent" | "admin") => setUserType(value)}>
                   <SelectTrigger>
                     <SelectValue placeholder="Select account type" />
                   </SelectTrigger>
