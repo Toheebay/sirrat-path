@@ -1,5 +1,5 @@
 
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
@@ -16,25 +16,50 @@ import {
   Building,
   Copy,
   MessageCircle,
-  Mail
+  Mail,
+  Upload
 } from "lucide-react";
 import { useToast } from "@/hooks/use-toast";
+import { supabase } from "@/integrations/supabase/client";
+import PaymentUpload from "./PaymentUpload";
 
 const PaymentDashboard = () => {
-  const [paymentHistory] = useState([
-    { id: 1, date: "2024-01-15", amount: 500000, status: "completed", method: "Bank Transfer", reference: "TXN001" },
-    { id: 2, date: "2024-02-15", amount: 300000, status: "completed", method: "Bank Transfer", reference: "TXN002" },
-    { id: 3, date: "2024-03-15", amount: 250000, status: "pending", method: "Bank Transfer", reference: "TXN003" },
-    { id: 4, date: "2024-04-15", amount: 200000, status: "upcoming", method: "Bank Transfer", reference: "TXN004" },
-  ]);
-
+  const [paymentHistory, setPaymentHistory] = useState([]);
+  const [showUploadForm, setShowUploadForm] = useState(false);
+  const [stats, setStats] = useState({ totalPaid: 0, totalAmount: 9850000 });
   const { toast } = useToast();
 
-  const totalAmount = 9850000; // Updated total amount
-  const paidAmount = 800000; // Amount already paid
+  useEffect(() => {
+    fetchPayments();
+  }, []);
+
+  const fetchPayments = async () => {
+    try {
+      const { data: { user } } = await supabase.auth.getUser();
+      if (!user) return;
+
+      const { data, error } = await supabase
+        .from('payments')
+        .select('*')
+        .eq('user_id', user.id)
+        .eq('status', 'verified')
+        .order('payment_date', { ascending: false });
+
+      if (error) throw error;
+
+      setPaymentHistory(data || []);
+      const totalPaid = data?.reduce((sum, payment) => sum + parseFloat(payment.amount), 0) || 0;
+      setStats(prev => ({ ...prev, totalPaid }));
+    } catch (error: any) {
+      console.error('Error fetching payments:', error);
+    }
+  };
+
+  const totalAmount = stats.totalAmount;
+  const paidAmount = stats.totalPaid;
   const progressPercentage = (paidAmount / totalAmount) * 100;
   const remainingAmount = totalAmount - paidAmount;
-  const monthsRemaining = Math.ceil(remainingAmount / 200000); // Assuming 200k per month
+  const monthsRemaining = Math.ceil(remainingAmount / 200000);
 
   const bankDetails = {
     accountName: "Abdullateef Hajj and Umrah integrated Service Ltd.",
@@ -43,8 +68,8 @@ const PaymentDashboard = () => {
   };
 
   const contactInfo = {
-    whatsapp: ["+2347067412852", "+2348024764090"],
-    email: "adebayoajani23@gmail.com"
+    whatsapp: ["+2347067412852"],
+    email: "adebayoajani23@toheebay.online"
   };
 
   const copyToClipboard = (text: string) => {
@@ -56,15 +81,30 @@ const PaymentDashboard = () => {
   };
 
   const handleWhatsAppContact = (number: string) => {
-    const message = encodeURIComponent(`Hello, I want to inquire about Hajj 2026 payment. My remaining balance is ₦${remainingAmount.toLocaleString()}`);
+    const message = encodeURIComponent(`Hello, I want to inquire about Hajj 2026 payment. My remaining balance is ₦${remainingAmount.toLocaleString()}. Agent Code: 952`);
     window.open(`https://wa.me/${number.replace('+', '')}?text=${message}`, '_blank');
   };
 
   const handleEmailContact = () => {
-    const subject = encodeURIComponent('Hajj 2026 Payment Inquiry');
-    const body = encodeURIComponent(`Hello,\n\nI want to inquire about my Hajj 2026 payment.\nRemaining Balance: ₦${remainingAmount.toLocaleString()}\n\nThank you.`);
+    const subject = encodeURIComponent('Hajj 2026 Payment Inquiry - Agent Code 952');
+    const body = encodeURIComponent(`Hello,\n\nI want to inquire about my Hajj 2026 payment.\nRemaining Balance: ₦${remainingAmount.toLocaleString()}\nAgent Code: 952\n\nThank you.`);
     window.open(`mailto:${contactInfo.email}?subject=${subject}&body=${body}`, '_blank');
   };
+
+  if (showUploadForm) {
+    return (
+      <div className="space-y-4">
+        <Button 
+          variant="outline" 
+          onClick={() => setShowUploadForm(false)}
+          className="mb-4"
+        >
+          ← Back to Dashboard
+        </Button>
+        <PaymentUpload />
+      </div>
+    );
+  }
 
   return (
     <div className="max-w-6xl mx-auto space-y-6">
@@ -128,6 +168,17 @@ const PaymentDashboard = () => {
         </Card>
       </div>
 
+      {/* Upload Payment Button */}
+      <div className="text-center mb-6">
+        <Button 
+          onClick={() => setShowUploadForm(true)}
+          className="bg-emerald-600 hover:bg-emerald-700 px-8 py-3 text-lg"
+        >
+          <Upload className="w-5 h-5 mr-2" />
+          Upload Payment Receipt
+        </Button>
+      </div>
+
       {/* Payment Progress */}
       <Card className="mb-6">
         <CardHeader>
@@ -159,46 +210,32 @@ const PaymentDashboard = () => {
         <div className="lg:col-span-2">
           <Card>
             <CardHeader>
-              <CardTitle>Payment Schedule</CardTitle>
-              <CardDescription>Your upcoming and completed payments</CardDescription>
+              <CardTitle>Verified Payments</CardTitle>
+              <CardDescription>Your confirmed payment history</CardDescription>
             </CardHeader>
             <CardContent>
               <div className="space-y-4">
-                {paymentHistory.map((payment) => (
-                  <div key={payment.id} className="flex items-center justify-between p-4 border rounded-lg">
-                    <div className="flex items-center space-x-4">
-                      <div className={`w-10 h-10 rounded-full flex items-center justify-center ${
-                        payment.status === 'completed' ? 'bg-green-100' :
-                        payment.status === 'pending' ? 'bg-orange-100' : 'bg-gray-100'
-                      }`}>
-                        {payment.status === 'completed' ? 
-                          <CheckCircle className="w-5 h-5 text-green-600" /> :
-                          payment.status === 'pending' ? 
-                          <AlertCircle className="w-5 h-5 text-orange-600" /> :
-                          <Clock className="w-5 h-5 text-gray-600" />
-                        }
+                {paymentHistory.length === 0 ? (
+                  <p className="text-center text-gray-500 py-8">No verified payments yet</p>
+                ) : (
+                  paymentHistory.map((payment: any) => (
+                    <div key={payment.id} className="flex items-center justify-between p-4 border rounded-lg">
+                      <div className="flex items-center space-x-4">
+                        <div className="w-10 h-10 rounded-full flex items-center justify-center bg-green-100">
+                          <CheckCircle className="w-5 h-5 text-green-600" />
+                        </div>
+                        <div>
+                          <p className="font-medium">₦{parseFloat(payment.amount).toLocaleString()}</p>
+                          <p className="text-sm text-gray-600">{new Date(payment.payment_date).toLocaleDateString()} • {payment.payment_method}</p>
+                          <p className="text-xs text-gray-500">Ref: {payment.reference_number}</p>
+                        </div>
                       </div>
-                      <div>
-                        <p className="font-medium">₦{payment.amount.toLocaleString()}</p>
-                        <p className="text-sm text-gray-600">{payment.date} • {payment.method}</p>
-                        <p className="text-xs text-gray-500">Ref: {payment.reference}</p>
+                      <div className="text-right">
+                        <Badge className="bg-green-100 text-green-800">✓ Verified</Badge>
                       </div>
                     </div>
-                    <div className="text-right">
-                      <Badge 
-                        variant={payment.status === 'completed' ? 'default' : 'secondary'}
-                        className={
-                          payment.status === 'completed' ? 'bg-green-100 text-green-800' :
-                          payment.status === 'pending' ? 'bg-orange-100 text-orange-800' :
-                          'bg-gray-100 text-gray-800'
-                        }
-                      >
-                        {payment.status === 'completed' ? '✓ Paid' :
-                         payment.status === 'pending' ? '⏰ Due' : '📅 Upcoming'}
-                      </Badge>
-                    </div>
-                  </div>
-                ))}
+                  ))
+                )}
               </div>
             </CardContent>
           </Card>
@@ -278,7 +315,7 @@ const PaymentDashboard = () => {
 
               <div className="text-xs text-gray-600 bg-yellow-50 p-3 rounded-lg">
                 <p className="font-medium text-yellow-800 mb-1">⚠️ Important:</p>
-                <p>Please include your name and phone number as payment reference when making transfers.</p>
+                <p>Always include <strong>Agent Code: 952</strong> and your name/phone in payment reference.</p>
               </div>
             </CardContent>
           </Card>
@@ -327,10 +364,10 @@ const PaymentDashboard = () => {
             </CardHeader>
             <CardContent>
               <ul className="text-sm text-blue-700 space-y-2">
+                <li>• Always use Agent Code: 952 in transfers</li>
                 <li>• Keep your payment receipts for records</li>
-                <li>• Include your details as payment reference</li>
-                <li>• Contact us immediately after payment</li>
-                <li>• Pay regularly to complete on time</li>
+                <li>• Upload receipts immediately after payment</li>
+                <li>• Contact us for payment confirmation</li>
               </ul>
             </CardContent>
           </Card>

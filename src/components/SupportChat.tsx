@@ -1,4 +1,3 @@
-
 import { useState } from "react";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
@@ -18,9 +17,12 @@ import {
   AlertCircle
 } from "lucide-react";
 import { useToast } from "@/hooks/use-toast";
+import { supabase } from "@/integrations/supabase/client";
 
 const SupportChat = () => {
   const [message, setMessage] = useState("");
+  const [subject, setSubject] = useState("");
+  const [priority, setPriority] = useState("medium");
   const [chatHistory] = useState([
     {
       id: 1,
@@ -98,8 +100,54 @@ const SupportChat = () => {
     }
   };
 
+  const submitTicket = async () => {
+    if (!subject.trim() || !message.trim()) {
+      toast({
+        title: "Missing Information",
+        description: "Please fill in both subject and message",
+        variant: "destructive",
+      });
+      return;
+    }
+
+    try {
+      const { data: { user } } = await supabase.auth.getUser();
+      if (!user) throw new Error("Not authenticated");
+
+      const { error } = await supabase
+        .from('support_tickets')
+        .insert({
+          user_id: user.id,
+          subject,
+          message,
+          priority
+        });
+
+      if (error) throw error;
+
+      toast({
+        title: "Ticket Submitted",
+        description: "Your support ticket has been created. We'll respond to adebayoajani23@toheebay.online soon.",
+      });
+
+      setSubject("");
+      setMessage("");
+      setPriority("medium");
+    } catch (error: any) {
+      toast({
+        title: "Error",
+        description: error.message,
+        variant: "destructive",
+      });
+    }
+  };
+
   const handleWhatsAppSupport = () => {
-    window.open("https://wa.me/2348123456789?text=Hello, I need help with my Hajj application", "_blank");
+    window.open("https://wa.me/2347067412852?text=Hello, I need help with my Hajj application", "_blank");
+  };
+
+  const handleEmailSupport = () => {
+    window.open("mailto:adebayoajani23@toheebay.online?subject=Hajj Support Request", "_blank");
   };
 
   const formatTimestamp = (timestamp: string) => {
@@ -152,25 +200,25 @@ const SupportChat = () => {
           <CardContent className="p-6 text-center">
             <MessageSquare className="w-12 h-12 mx-auto mb-4 text-green-100" />
             <h3 className="text-xl font-bold mb-2">WhatsApp Support</h3>
-            <p className="text-green-100 mb-4">Chat with us instantly</p>
+            <p className="text-green-100 mb-4">+2347067412852</p>
             <Badge className="bg-white text-green-600">Available 24/7</Badge>
           </CardContent>
         </Card>
 
-        <Card className="bg-gradient-to-r from-blue-500 to-blue-600 text-white">
+        <Card className="bg-gradient-to-r from-blue-500 to-blue-600 text-white cursor-pointer hover:shadow-lg transition-shadow" onClick={() => window.open("tel:+2347067412852")}>
           <CardContent className="p-6 text-center">
             <Phone className="w-12 h-12 mx-auto mb-4 text-blue-100" />
             <h3 className="text-xl font-bold mb-2">Phone Support</h3>
-            <p className="text-blue-100 mb-4">+234 123 456 7890</p>
+            <p className="text-blue-100 mb-4">+2347067412852</p>
             <Badge className="bg-white text-blue-600">9 AM - 6 PM</Badge>
           </CardContent>
         </Card>
 
-        <Card className="bg-gradient-to-r from-purple-500 to-purple-600 text-white">
+        <Card className="bg-gradient-to-r from-purple-500 to-purple-600 text-white cursor-pointer hover:shadow-lg transition-shadow" onClick={handleEmailSupport}>
           <CardContent className="p-6 text-center">
             <Mail className="w-12 h-12 mx-auto mb-4 text-purple-100" />
             <h3 className="text-xl font-bold mb-2">Email Support</h3>
-            <p className="text-purple-100 mb-4">support@hajjpathway.com</p>
+            <p className="text-purple-100 mb-4">adebayoajani23@toheebay.online</p>
             <Badge className="bg-white text-purple-600">24-48 hr response</Badge>
           </CardContent>
         </Card>
@@ -395,23 +443,16 @@ const SupportChat = () => {
           <Card className="max-w-2xl mx-auto">
             <CardHeader>
               <CardTitle>Contact Support Team</CardTitle>
-              <CardDescription>Send us a detailed message and we'll get back to you</CardDescription>
+              <CardDescription>Send us a detailed message and we'll respond to adebayoajani23@toheebay.online</CardDescription>
             </CardHeader>
             <CardContent className="space-y-4">
-              <div className="grid md:grid-cols-2 gap-4">
-                <div>
-                  <label className="block text-sm font-medium mb-2">Full Name</label>
-                  <Input placeholder="Enter your full name" />
-                </div>
-                <div>
-                  <label className="block text-sm font-medium mb-2">Email Address</label>
-                  <Input type="email" placeholder="your.email@example.com" />
-                </div>
-              </div>
-              
               <div>
                 <label className="block text-sm font-medium mb-2">Subject</label>
-                <Input placeholder="Brief description of your issue" />
+                <Input 
+                  placeholder="Brief description of your issue" 
+                  value={subject}
+                  onChange={(e) => setSubject(e.target.value)}
+                />
               </div>
               
               <div>
@@ -419,19 +460,25 @@ const SupportChat = () => {
                 <Textarea 
                   placeholder="Please provide detailed information about your issue or question..."
                   rows={6}
+                  value={message}
+                  onChange={(e) => setMessage(e.target.value)}
                 />
               </div>
               
               <div>
                 <label className="block text-sm font-medium mb-2">Priority Level</label>
-                <select className="w-full p-2 border rounded-md">
+                <select 
+                  className="w-full p-2 border rounded-md"
+                  value={priority}
+                  onChange={(e) => setPriority(e.target.value)}
+                >
                   <option value="low">Low - General inquiry</option>
                   <option value="medium">Medium - Issue affecting service</option>
                   <option value="high">High - Urgent issue</option>
                 </select>
               </div>
 
-              <Button className="w-full bg-emerald-600 hover:bg-emerald-700 py-3">
+              <Button onClick={submitTicket} className="w-full bg-emerald-600 hover:bg-emerald-700 py-3">
                 Send Message
               </Button>
             </CardContent>

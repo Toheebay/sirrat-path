@@ -9,7 +9,117 @@ export type Json =
 export type Database = {
   public: {
     Tables: {
-      [_ in never]: never
+      payments: {
+        Row: {
+          agent_code: string | null
+          amount: number
+          created_at: string | null
+          id: string
+          notes: string | null
+          payment_date: string
+          payment_method: string | null
+          receipt_url: string | null
+          reference_number: string | null
+          status: string | null
+          updated_at: string | null
+          user_id: string
+        }
+        Insert: {
+          agent_code?: string | null
+          amount: number
+          created_at?: string | null
+          id?: string
+          notes?: string | null
+          payment_date: string
+          payment_method?: string | null
+          receipt_url?: string | null
+          reference_number?: string | null
+          status?: string | null
+          updated_at?: string | null
+          user_id: string
+        }
+        Update: {
+          agent_code?: string | null
+          amount?: number
+          created_at?: string | null
+          id?: string
+          notes?: string | null
+          payment_date?: string
+          payment_method?: string | null
+          receipt_url?: string | null
+          reference_number?: string | null
+          status?: string | null
+          updated_at?: string | null
+          user_id?: string
+        }
+        Relationships: []
+      }
+      profiles: {
+        Row: {
+          agent_code: string | null
+          created_at: string | null
+          email: string
+          id: string
+          updated_at: string | null
+          user_type: string
+          username: string
+        }
+        Insert: {
+          agent_code?: string | null
+          created_at?: string | null
+          email: string
+          id: string
+          updated_at?: string | null
+          user_type: string
+          username: string
+        }
+        Update: {
+          agent_code?: string | null
+          created_at?: string | null
+          email?: string
+          id?: string
+          updated_at?: string | null
+          user_type?: string
+          username?: string
+        }
+        Relationships: []
+      }
+      support_tickets: {
+        Row: {
+          admin_response: string | null
+          created_at: string | null
+          id: string
+          message: string
+          priority: string | null
+          status: string | null
+          subject: string
+          updated_at: string | null
+          user_id: string | null
+        }
+        Insert: {
+          admin_response?: string | null
+          created_at?: string | null
+          id?: string
+          message: string
+          priority?: string | null
+          status?: string | null
+          subject: string
+          updated_at?: string | null
+          user_id?: string | null
+        }
+        Update: {
+          admin_response?: string | null
+          created_at?: string | null
+          id?: string
+          message?: string
+          priority?: string | null
+          status?: string | null
+          subject?: string
+          updated_at?: string | null
+          user_id?: string | null
+        }
+        Relationships: []
+      }
     }
     Views: {
       [_ in never]: never

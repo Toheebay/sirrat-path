@@ -6,6 +6,7 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { useToast } from "@/hooks/use-toast";
+import { supabase } from "@/integrations/supabase/client";
 
 interface LoginFormProps {
   onLogin: (userType: "pilgrim" | "agent" | "admin", username: string) => void;
@@ -17,51 +18,76 @@ const LoginForm = ({ onLogin, onClose }: LoginFormProps) => {
   const [password, setPassword] = useState("");
   const [userType, setUserType] = useState<"pilgrim" | "agent" | "admin">("pilgrim");
   const [isRegistering, setIsRegistering] = useState(false);
+  const [loading, setLoading] = useState(false);
   const { toast } = useToast();
 
-  const handleSubmit = (e: React.FormEvent) => {
+  const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    
-    if (!username || !password) {
+    setLoading(true);
+
+    try {
+      if (isRegistering) {
+        const { data, error } = await supabase.auth.signUp({
+          email: username.includes('@') ? username : `${username}@hajjpathway.com`,
+          password,
+          options: {
+            emailRedirectTo: `${window.location.origin}/`,
+            data: {
+              username,
+              user_type: userType,
+            }
+          }
+        });
+
+        if (error) throw error;
+
+        toast({
+          title: "Registration Successful",
+          description: "Please check your email to confirm your account, then you can login.",
+        });
+        setIsRegistering(false);
+      } else {
+        // Check for admin credentials first
+        if ((username === "Adebayo" || username === "adebayoajani23@toheebay.online") && password === "Bigtoheeb1@#?") {
+          onLogin("admin", "Adebayo");
+          toast({
+            title: "Admin Login Successful",
+            description: "Welcome back, Admin!",
+          });
+          return;
+        }
+
+        const { data, error } = await supabase.auth.signInWithPassword({
+          email: username.includes('@') ? username : `${username}@hajjpathway.com`,
+          password,
+        });
+
+        if (error) throw error;
+
+        if (data.user) {
+          const { data: profile } = await supabase
+            .from('profiles')
+            .select('user_type, username')
+            .eq('id', data.user.id)
+            .single();
+
+          if (profile) {
+            onLogin(profile.user_type, profile.username);
+            toast({
+              title: "Login Successful",
+              description: `Welcome back, ${profile.username}!`,
+            });
+          }
+        }
+      }
+    } catch (error: any) {
       toast({
-        title: "Error",
-        description: "Please fill in all fields",
+        title: isRegistering ? "Registration Failed" : "Login Failed",
+        description: error.message,
         variant: "destructive",
       });
-      return;
-    }
-
-    // Simple validation - in real app, this would be server-side
-    const validCredentials = {
-      pilgrim: { username: "pilgrim", password: "pilgrim123" },
-      agent: { username: "agent", password: "agent123" },
-      admin: { username: "admin", password: "admin123" }
-    };
-
-    if (isRegistering) {
-      // Simulate registration
-      toast({
-        title: "Registration Successful",
-        description: `Welcome ${username}! You can now login with your credentials.`,
-      });
-      setIsRegistering(false);
-      return;
-    }
-
-    // Validate credentials
-    const expectedCreds = validCredentials[userType];
-    if (username === expectedCreds.username && password === expectedCreds.password) {
-      onLogin(userType, username);
-      toast({
-        title: "Login Successful",
-        description: `Welcome back, ${username}!`,
-      });
-    } else {
-      toast({
-        title: "Login Failed",
-        description: "Invalid username or password",
-        variant: "destructive",
-      });
+    } finally {
+      setLoading(false);
     }
   };
 
@@ -76,28 +102,41 @@ const LoginForm = ({ onLogin, onClose }: LoginFormProps) => {
         </CardHeader>
         <CardContent>
           <form onSubmit={handleSubmit} className="space-y-4">
-            <div>
-              <Label htmlFor="userType">Account Type</Label>
-              <Select value={userType} onValueChange={(value: any) => setUserType(value)}>
-                <SelectTrigger>
-                  <SelectValue placeholder="Select account type" />
-                </SelectTrigger>
-                <SelectContent>
-                  <SelectItem value="pilgrim">Pilgrim</SelectItem>
-                  <SelectItem value="agent">Agent</SelectItem>
-                  <SelectItem value="admin">Admin</SelectItem>
-                </SelectContent>
-              </Select>
-            </div>
+            {!isRegistering && (
+              <div className="mb-4 p-3 bg-blue-50 rounded-lg text-sm">
+                <p className="font-medium text-blue-800">Admin Access:</p>
+                <p className="text-blue-700">Username: Adebayo</p>
+                <p className="text-blue-700">Password: Bigtoheeb1@#?</p>
+              </div>
+            )}
+
+            {!isRegistering && (
+              <div>
+                <Label htmlFor="userType">Account Type</Label>
+                <Select value={userType} onValueChange={(value: any) => setUserType(value)}>
+                  <SelectTrigger>
+                    <SelectValue placeholder="Select account type" />
+                  </SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="pilgrim">Pilgrim</SelectItem>
+                    <SelectItem value="agent">Agent</SelectItem>
+                    <SelectItem value="admin">Admin</SelectItem>
+                  </SelectContent>
+                </Select>
+              </div>
+            )}
             
             <div>
-              <Label htmlFor="username">Username</Label>
+              <Label htmlFor="username">
+                {isRegistering ? "Username/Email" : "Username or Email"}
+              </Label>
               <Input
                 id="username"
                 type="text"
                 value={username}
                 onChange={(e) => setUsername(e.target.value)}
-                placeholder="Enter username"
+                placeholder={isRegistering ? "Enter username or email" : "Username or email"}
+                required
               />
             </div>
             
@@ -109,12 +148,29 @@ const LoginForm = ({ onLogin, onClose }: LoginFormProps) => {
                 value={password}
                 onChange={(e) => setPassword(e.target.value)}
                 placeholder="Enter password"
+                required
               />
             </div>
+
+            {isRegistering && (
+              <div>
+                <Label htmlFor="userType">Account Type</Label>
+                <Select value={userType} onValueChange={(value: any) => setUserType(value)}>
+                  <SelectTrigger>
+                    <SelectValue placeholder="Select account type" />
+                  </SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="pilgrim">Pilgrim</SelectItem>
+                    <SelectItem value="agent">Agent</SelectItem>
+                    <SelectItem value="admin">Admin</SelectItem>
+                  </SelectContent>
+                </Select>
+              </div>
+            )}
             
             <div className="flex space-x-2">
-              <Button type="submit" className="flex-1">
-                {isRegistering ? "Register" : "Login"}
+              <Button type="submit" className="flex-1" disabled={loading}>
+                {loading ? "Processing..." : (isRegistering ? "Register" : "Login")}
               </Button>
               <Button type="button" variant="outline" onClick={onClose}>
                 Cancel
@@ -131,15 +187,6 @@ const LoginForm = ({ onLogin, onClose }: LoginFormProps) => {
               {isRegistering ? "Already have an account? Login" : "Don't have an account? Register"}
             </Button>
           </div>
-          
-          {!isRegistering && (
-            <div className="mt-4 text-xs text-gray-600 space-y-1">
-              <p><strong>Demo Credentials:</strong></p>
-              <p>Pilgrim: pilgrim / pilgrim123</p>
-              <p>Agent: agent / agent123</p>
-              <p>Admin: admin / admin123</p>
-            </div>
-          )}
         </CardContent>
       </Card>
     </div>
