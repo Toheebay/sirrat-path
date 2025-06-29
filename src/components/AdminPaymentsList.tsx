@@ -1,3 +1,4 @@
+
 import { useState, useEffect } from "react";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
@@ -12,18 +13,18 @@ interface Payment {
   user_id: string;
   amount: number;
   payment_date: string;
-  payment_method: string;
-  reference_number: string;
-  agent_code: string;
-  receipt_url: string;
-  status: string;
-  notes: string;
-  created_at: string;
-  updated_at: string;
+  payment_method: string | null;
+  reference_number: string | null;
+  agent_code: string | null;
+  receipt_url: string | null;
+  status: string | null;
+  notes: string | null;
+  created_at: string | null;
+  updated_at: string | null;
   profiles: {
     username: string;
     email: string;
-  };
+  } | null;
 }
 
 const AdminPaymentsList = () => {
@@ -55,18 +56,21 @@ const AdminPaymentsList = () => {
 
       if (error) throw error;
       
-      // Filter out any payments where profiles query failed
-      const validPayments = data?.filter(payment => 
-        payment.profiles && 
-        typeof payment.profiles === 'object' && 
-        'username' in payment.profiles && 
-        'email' in payment.profiles
-      ).map(payment => ({
-        ...payment,
-        amount: Number(payment.amount)
-      })) as Payment[];
+      // Filter out any payments where profiles query failed and ensure proper typing
+      const validPayments = (data || [])
+        .filter((payment: any) => 
+          payment.profiles && 
+          typeof payment.profiles === 'object' && 
+          'username' in payment.profiles && 
+          'email' in payment.profiles
+        )
+        .map((payment: any) => ({
+          ...payment,
+          amount: Number(payment.amount),
+          profiles: payment.profiles as { username: string; email: string }
+        })) as Payment[];
       
-      setPayments(validPayments || []);
+      setPayments(validPayments);
     } catch (error: any) {
       console.error('Error fetching payments:', error);
       toast({
@@ -128,7 +132,7 @@ const AdminPaymentsList = () => {
     }
   };
 
-  const getStatusColor = (status: string) => {
+  const getStatusColor = (status: string | null) => {
     switch (status) {
       case 'verified': return 'bg-green-100 text-green-800';
       case 'rejected': return 'bg-red-100 text-red-800';
@@ -136,7 +140,7 @@ const AdminPaymentsList = () => {
     }
   };
 
-  const getStatusIcon = (status: string) => {
+  const getStatusIcon = (status: string | null) => {
     switch (status) {
       case 'verified': return <CheckCircle className="w-4 h-4" />;
       case 'rejected': return <XCircle className="w-4 h-4" />;
@@ -223,20 +227,20 @@ const AdminPaymentsList = () => {
                   <TableRow key={payment.id}>
                     <TableCell>
                       <div>
-                        <div className="font-medium">{payment.profiles.username}</div>
-                        <div className="text-sm text-gray-500">{payment.profiles.email}</div>
+                        <div className="font-medium">{payment.profiles?.username || 'N/A'}</div>
+                        <div className="text-sm text-gray-500">{payment.profiles?.email || 'N/A'}</div>
                       </div>
                     </TableCell>
                     <TableCell className="font-medium">₦{payment.amount.toLocaleString()}</TableCell>
                     <TableCell>{new Date(payment.payment_date).toLocaleDateString()}</TableCell>
                     <TableCell>{payment.reference_number || 'N/A'}</TableCell>
                     <TableCell>
-                      <Badge variant="outline">{payment.agent_code}</Badge>
+                      <Badge variant="outline">{payment.agent_code || '952'}</Badge>
                     </TableCell>
                     <TableCell>
                       <Badge className={`${getStatusColor(payment.status)} flex items-center gap-1`}>
                         {getStatusIcon(payment.status)}
-                        {payment.status}
+                        {payment.status || 'pending'}
                       </Badge>
                     </TableCell>
                     <TableCell>
@@ -244,7 +248,7 @@ const AdminPaymentsList = () => {
                         <Button
                           variant="outline"
                           size="sm"
-                          onClick={() => window.open(payment.receipt_url, '_blank')}
+                          onClick={() => window.open(payment.receipt_url!, '_blank')}
                         >
                           <Eye className="w-4 h-4 mr-1" />
                           View
@@ -286,43 +290,6 @@ const AdminPaymentsList = () => {
       </Card>
     </div>
   );
-};
-
-const getStatusColor = (status: string) => {
-  switch (status) {
-    case 'verified': return 'bg-green-100 text-green-800';
-    case 'rejected': return 'bg-red-100 text-red-800';
-    default: return 'bg-yellow-100 text-yellow-800';
-  }
-};
-
-const getStatusIcon = (status: string) => {
-  switch (status) {
-    case 'verified': return <CheckCircle className="w-4 h-4" />;
-    case 'rejected': return <XCircle className="w-4 h-4" />;
-    default: return <Clock className="w-4 h-4" />;
-  }
-};
-
-const fetchStats = async () => {
-  try {
-    const { data, error } = await supabase
-      .from('payments')
-      .select('status, amount');
-
-    if (error) throw error;
-
-    const total = data?.length || 0;
-    const verified = data?.filter(p => p.status === 'verified').length || 0;
-    const pending = data?.filter(p => p.status === 'pending').length || 0;
-    const rejected = data?.filter(p => p.status === 'rejected').length || 0;
-    const totalAmount = data?.reduce((sum, p) => sum + Number(p.amount), 0) || 0;
-
-    return { total, verified, pending, rejected, totalAmount };
-  } catch (error: any) {
-    console.error('Error fetching stats:', error);
-    return { total: 0, verified: 0, pending: 0, rejected: 0, totalAmount: 0 };
-  }
 };
 
 export default AdminPaymentsList;

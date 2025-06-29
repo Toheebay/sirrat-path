@@ -47,7 +47,50 @@ const AuthPage = ({ onAuthSuccess }: AuthPageProps) => {
 
     try {
       if (isLogin) {
-        // Handle login
+        // Check for admin credentials first
+        if (email === "adebayoajani23@toheebay.online" && password === "toheeb1") {
+          // Try to login with admin credentials
+          const { data, error } = await supabase.auth.signInWithPassword({
+            email,
+            password,
+          });
+
+          if (error) {
+            // If admin user doesn't exist, create them
+            const { data: signUpData, error: signUpError } = await supabase.auth.signUp({
+              email,
+              password,
+              options: {
+                emailRedirectTo: `${window.location.origin}/`,
+                data: {
+                  username: "Admin",
+                  user_type: "admin",
+                }
+              }
+            });
+
+            if (signUpError) throw signUpError;
+
+            toast({
+              title: "Admin Account Created",
+              description: "Admin account created and logged in successfully",
+            });
+
+            if (signUpData.user) {
+              onAuthSuccess(signUpData.user, "admin");
+            }
+          } else if (data.user) {
+            // Admin login successful
+            onAuthSuccess(data.user, "admin");
+            toast({
+              title: "Admin Login Successful",
+              description: "Welcome back, Admin!",
+            });
+          }
+          return;
+        }
+
+        // Handle regular login
         const { data, error } = await supabase.auth.signInWithPassword({
           email,
           password,
@@ -75,13 +118,17 @@ const AuthPage = ({ onAuthSuccess }: AuthPageProps) => {
         }
       } else {
         // Handle registration
+        if (!username.trim()) {
+          throw new Error("Username is required for registration");
+        }
+
         const { data, error } = await supabase.auth.signUp({
           email,
           password,
           options: {
             emailRedirectTo: `${window.location.origin}/`,
             data: {
-              username,
+              username: username.trim(),
               user_type: userType,
             }
           }
@@ -90,14 +137,32 @@ const AuthPage = ({ onAuthSuccess }: AuthPageProps) => {
         if (error) throw error;
 
         if (data.user) {
-          toast({
-            title: "Registration Successful",
-            description: "Please check your email to confirm your account, then you can login.",
-          });
-          
-          // Switch to login mode after successful registration
-          setIsLogin(true);
-          setPassword("");
+          if (data.user.email_confirmed_at) {
+            // User is immediately confirmed, log them in
+            const { data: profile } = await supabase
+              .from('profiles')
+              .select('user_type')
+              .eq('id', data.user.id)
+              .single();
+
+            if (profile) {
+              onAuthSuccess(data.user, profile.user_type);
+              toast({
+                title: "Registration Successful",
+                description: "Welcome! Your account has been created.",
+              });
+            }
+          } else {
+            // User needs email confirmation
+            toast({
+              title: "Registration Successful",
+              description: "Please check your email to confirm your account, then you can login.",
+            });
+            
+            // Switch to login mode after successful registration
+            setIsLogin(true);
+            setPassword("");
+          }
         }
       }
     } catch (error: any) {
