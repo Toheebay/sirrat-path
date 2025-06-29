@@ -27,16 +27,66 @@ const Index = () => {
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
+    let mounted = true;
+
+    const initializeAuth = async () => {
+      try {
+        // Get initial session
+        const { data: { session: initialSession }, error: sessionError } = await supabase.auth.getSession();
+        
+        if (sessionError) {
+          console.error('Session error:', sessionError);
+          if (mounted) {
+            setLoading(false);
+          }
+          return;
+        }
+
+        if (initialSession?.user && mounted) {
+          console.log('Initial session found:', initialSession.user.email);
+          
+          // Fetch user profile
+          const { data: profile, error: profileError } = await supabase
+            .from('profiles')
+            .select('user_type')
+            .eq('id', initialSession.user.id)
+            .single();
+          
+          if (profileError) {
+            console.error('Profile error:', profileError);
+            // Still set user as logged in even if profile fetch fails
+            setUser(initialSession.user);
+            setSession(initialSession);
+            setIsLoggedIn(true);
+            setUserType("pilgrim"); // Default fallback
+          } else if (profile && mounted) {
+            console.log('Profile loaded:', profile);
+            setUser(initialSession.user);
+            setSession(initialSession);
+            setUserType(profile.user_type as "pilgrim" | "agent" | "admin");
+            setIsLoggedIn(true);
+          }
+        }
+      } catch (error) {
+        console.error('Auth initialization error:', error);
+      } finally {
+        if (mounted) {
+          setLoading(false);
+        }
+      }
+    };
+
     // Set up auth state listener
     const { data: { subscription } } = supabase.auth.onAuthStateChange(
       async (event, session) => {
+        if (!mounted) return;
+        
         console.log('Auth state changed:', event, session?.user?.email);
         
         setSession(session);
         setUser(session?.user ?? null);
         
         if (session?.user && event === 'SIGNED_IN') {
-          // Fetch user profile to get user type
           try {
             const { data: profile, error } = await supabase
               .from('profiles')
@@ -46,62 +96,36 @@ const Index = () => {
             
             if (error) {
               console.error('Error fetching profile:', error);
-            } else if (profile) {
+              setUserType("pilgrim"); // Fallback
+            } else if (profile && mounted) {
               console.log('User profile:', profile);
               setUserType(profile.user_type as "pilgrim" | "agent" | "admin");
+            }
+            
+            if (mounted) {
               setIsLoggedIn(true);
             }
           } catch (error) {
             console.error('Profile fetch error:', error);
+            if (mounted) {
+              setIsLoggedIn(true);
+              setUserType("pilgrim"); // Fallback
+            }
           }
-        } else {
+        } else if (mounted) {
           setIsLoggedIn(false);
           setUserType("pilgrim");
         }
-        setLoading(false);
       }
     );
 
-    // Check for existing session
-    const checkSession = async () => {
-      try {
-        const { data: { session }, error } = await supabase.auth.getSession();
-        
-        if (error) {
-          console.error('Session error:', error);
-          setLoading(false);
-          return;
-        }
+    // Initialize auth
+    initializeAuth();
 
-        console.log('Initial session check:', session?.user?.email);
-        
-        if (session?.user) {
-          const { data: profile, error: profileError } = await supabase
-            .from('profiles')
-            .select('user_type')
-            .eq('id', session.user.id)
-            .single();
-          
-          if (profileError) {
-            console.error('Profile error:', profileError);
-          } else if (profile) {
-            console.log('Initial profile:', profile);
-            setUser(session.user);
-            setSession(session);
-            setUserType(profile.user_type as "pilgrim" | "agent" | "admin");
-            setIsLoggedIn(true);
-          }
-        }
-      } catch (error) {
-        console.error('Session check error:', error);
-      } finally {
-        setLoading(false);
-      }
+    return () => {
+      mounted = false;
+      subscription.unsubscribe();
     };
-
-    checkSession();
-
-    return () => subscription.unsubscribe();
   }, []);
 
   const handleAuthSuccess = (user: User, userType: string) => {
@@ -131,10 +155,10 @@ const Index = () => {
 
   if (loading) {
     return (
-      <div className="min-h-screen flex items-center justify-center">
+      <div className="min-h-screen flex items-center justify-center bg-gradient-to-br from-emerald-50 via-white to-blue-50">
         <div className="text-center">
           <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-emerald-600 mx-auto mb-4"></div>
-          <p>Loading...</p>
+          <p className="text-gray-600">Loading your dashboard...</p>
         </div>
       </div>
     );

@@ -1,10 +1,10 @@
 
-import { useState, useEffect } from "react";
+import { useState, useEffect, useCallback } from "react";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
-import { Eye, Upload, Plus } from "lucide-react";
+import { Eye, Upload, Plus, Loader2 } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
 import { useToast } from "@/hooks/use-toast";
 import PaymentUpload from "./PaymentUpload";
@@ -28,14 +28,13 @@ const PaymentDashboard = () => {
   const [showUploadForm, setShowUploadForm] = useState(false);
   const { toast } = useToast();
 
-  useEffect(() => {
-    fetchPayments();
-  }, []);
-
-  const fetchPayments = async () => {
+  const fetchPayments = useCallback(async () => {
     try {
       const { data: { user } } = await supabase.auth.getUser();
-      if (!user) return;
+      if (!user) {
+        setLoading(false);
+        return;
+      }
 
       const { data, error } = await supabase
         .from('payments')
@@ -52,6 +51,7 @@ const PaymentDashboard = () => {
 
       setPayments(transformedData || []);
     } catch (error: any) {
+      console.error('Payment fetch error:', error);
       toast({
         title: "Error",
         description: "Failed to fetch payments",
@@ -60,7 +60,11 @@ const PaymentDashboard = () => {
     } finally {
       setLoading(false);
     }
-  };
+  }, [toast]);
+
+  useEffect(() => {
+    fetchPayments();
+  }, [fetchPayments]);
 
   const getStatusColor = (status: string) => {
     switch (status) {
@@ -70,10 +74,16 @@ const PaymentDashboard = () => {
     }
   };
 
+  const handleUploadSuccess = useCallback(() => {
+    setShowUploadForm(false);
+    fetchPayments();
+  }, [fetchPayments]);
+
   if (loading) {
     return (
       <div className="flex items-center justify-center p-8">
-        <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-emerald-600"></div>
+        <Loader2 className="animate-spin h-8 w-8 text-emerald-600" />
+        <span className="ml-2 text-gray-600">Loading payments...</span>
       </div>
     );
   }
@@ -177,10 +187,7 @@ const PaymentDashboard = () => {
       {showUploadForm && (
         <PaymentUpload 
           onClose={() => setShowUploadForm(false)}
-          onSuccess={() => {
-            setShowUploadForm(false);
-            fetchPayments();
-          }}
+          onSuccess={handleUploadSuccess}
         />
       )}
     </div>
