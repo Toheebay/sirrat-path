@@ -59,6 +59,30 @@ const PaymentUpload = ({ onClose, onSuccess }: PaymentUploadProps) => {
     return publicUrl;
   };
 
+  const sendNotificationEmail = async (userEmail: string, userName: string, paymentData: any) => {
+    try {
+      const response = await fetch(`${supabase.supabaseUrl}/functions/v1/send-notification`, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          'Authorization': `Bearer ${supabase.supabaseKey}`,
+        },
+        body: JSON.stringify({
+          type: 'receipt',
+          userEmail,
+          userName,
+          data: paymentData
+        }),
+      });
+
+      if (!response.ok) {
+        console.error('Failed to send notification email');
+      }
+    } catch (error) {
+      console.error('Error sending notification email:', error);
+    }
+  };
+
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     setLoading(true);
@@ -66,6 +90,13 @@ const PaymentUpload = ({ onClose, onSuccess }: PaymentUploadProps) => {
     try {
       const { data: { user } } = await supabase.auth.getUser();
       if (!user) throw new Error("User not authenticated");
+
+      // Get user profile for name
+      const { data: profile } = await supabase
+        .from('profiles')
+        .select('username')
+        .eq('id', user.id)
+        .single();
 
       // Create payment record first
       const { data: payment, error: paymentError } = await supabase
@@ -76,7 +107,7 @@ const PaymentUpload = ({ onClose, onSuccess }: PaymentUploadProps) => {
             amount: parseFloat(amount),
             payment_date: paymentDate,
             reference_number: referenceNumber,
-            agent_code: "952", // Default agent code
+            agent_code: "952",
             payment_method: "Bank Transfer",
             notes,
             status: "pending"
@@ -101,9 +132,22 @@ const PaymentUpload = ({ onClose, onSuccess }: PaymentUploadProps) => {
         if (updateError) throw updateError;
       }
 
+      // Send notification email
+      await sendNotificationEmail(
+        user.email || '',
+        profile?.username || 'Unknown User',
+        {
+          amount: parseFloat(amount),
+          paymentDate,
+          referenceNumber,
+          notes,
+          receiptUrl
+        }
+      );
+
       toast({
         title: "Payment Submitted",
-        description: "Your payment has been submitted for verification",
+        description: "Your payment has been submitted for verification. Admin has been notified.",
       });
 
       onSuccess();

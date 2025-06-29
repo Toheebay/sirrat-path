@@ -1,4 +1,3 @@
-
 import { useState, useEffect } from "react";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
@@ -54,6 +53,30 @@ const SupportChat = () => {
     }
   };
 
+  const sendNotificationEmail = async (userEmail: string, userName: string, ticketData: any) => {
+    try {
+      const response = await fetch(`${supabase.supabaseUrl}/functions/v1/send-notification`, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          'Authorization': `Bearer ${supabase.supabaseKey}`,
+        },
+        body: JSON.stringify({
+          type: 'ticket',
+          userEmail,
+          userName,
+          data: ticketData
+        }),
+      });
+
+      if (!response.ok) {
+        console.error('Failed to send notification email');
+      }
+    } catch (error) {
+      console.error('Error sending notification email:', error);
+    }
+  };
+
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     setLoading(true);
@@ -61,6 +84,13 @@ const SupportChat = () => {
     try {
       const { data: { user } } = await supabase.auth.getUser();
       if (!user) throw new Error("User not authenticated");
+
+      // Get user profile for name
+      const { data: profile } = await supabase
+        .from('profiles')
+        .select('username')
+        .eq('id', user.id)
+        .single();
 
       const { error } = await supabase
         .from('support_tickets')
@@ -76,9 +106,20 @@ const SupportChat = () => {
 
       if (error) throw error;
 
+      // Send notification email
+      await sendNotificationEmail(
+        user.email || '',
+        profile?.username || 'Unknown User',
+        {
+          subject,
+          message,
+          priority
+        }
+      );
+
       toast({
         title: "Support Ticket Created",
-        description: "We'll get back to you soon via email: adebayoajani23@toheebay.online",
+        description: "We'll get back to you soon. Admin has been notified via email.",
       });
 
       setSubject("");
