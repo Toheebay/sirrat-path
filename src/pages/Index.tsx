@@ -14,6 +14,7 @@ import AgentDashboard from "@/components/AgentDashboard";
 import AdminDashboard from "@/components/AdminDashboard";
 import AuthPage from "@/components/AuthPage";
 import AdminPaymentsList from "@/components/AdminPaymentsList";
+import AdminSupportManagement from "@/components/AdminSupportManagement";
 import Footer from "@/components/Footer";
 import { supabase } from "@/integrations/supabase/client";
 
@@ -160,8 +161,10 @@ const Index = () => {
       case "documents":
         return <DocumentUpload />;
       case "dashboard":
-        return userType === "admin" ? <AdminDashboard /> : 
+        return userType === "admin" ? <AdminDashboard setActiveTab={setActiveTab} /> : 
                userType === "agent" ? <AgentDashboard /> : <PaymentDashboard />;
+      case "support-management":
+        return userType === "admin" ? <AdminSupportManagement /> : <SupportChat />;
       case "notifications":
         return <NotificationCenter />;
       case "support":

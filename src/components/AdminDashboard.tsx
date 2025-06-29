@@ -2,9 +2,13 @@
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
-import { Users, CreditCard, FileText, Bell, BarChart3, Settings, Shield, Database } from "lucide-react";
+import { Users, CreditCard, FileText, Bell, BarChart3, Settings, Shield, Database, MessageSquare, Download } from "lucide-react";
 
-const AdminDashboard = () => {
+interface AdminDashboardProps {
+  setActiveTab?: (tab: string) => void;
+}
+
+const AdminDashboard = ({ setActiveTab }: AdminDashboardProps) => {
   const stats = [
     { title: "Total Pilgrims", value: "2,543", change: "+12%", icon: Users, color: "text-blue-600" },
     { title: "Payments Received", value: "₦2.1B", change: "+8%", icon: CreditCard, color: "text-green-600" },
@@ -20,12 +24,42 @@ const AdminDashboard = () => {
   ];
 
   const managementSections = [
-    { title: "User Management", description: "Manage pilgrims, agents, and permissions", icon: Users },
-    { title: "Payment Oversight", description: "Monitor all payments and financial reports", icon: CreditCard },
-    { title: "Document Review", description: "Review and approve submitted documents", icon: FileText },
-    { title: "System Settings", description: "Configure platform settings and features", icon: Settings },
-    { title: "Reports & Analytics", description: "View detailed analytics and reports", icon: BarChart3 },
-    { title: "Database Management", description: "Manage system data and backups", icon: Database },
+    { 
+      title: "User Management", 
+      description: "Manage pilgrims, agents, and permissions", 
+      icon: Users,
+      action: () => setActiveTab?.("users")
+    },
+    { 
+      title: "Payment Oversight", 
+      description: "Monitor all payments and financial reports", 
+      icon: CreditCard,
+      action: () => setActiveTab?.("payments")
+    },
+    { 
+      title: "Support Management", 
+      description: "Manage support tickets and user queries", 
+      icon: MessageSquare,
+      action: () => setActiveTab?.("support-management")
+    },
+    { 
+      title: "Document Review", 
+      description: "Review and approve submitted documents", 
+      icon: FileText,
+      action: () => setActiveTab?.("documents")
+    },
+    { 
+      title: "System Settings", 
+      description: "Configure platform settings and features", 
+      icon: Settings,
+      action: () => setActiveTab?.("settings")
+    },
+    { 
+      title: "Reports & Analytics", 
+      description: "View detailed analytics and reports", 
+      icon: BarChart3,
+      action: () => setActiveTab?.("analytics")
+    },
   ];
 
   return (
@@ -74,7 +108,7 @@ const AdminDashboard = () => {
               <CardDescription className="text-sm text-gray-600 mb-4">
                 {section.description}
               </CardDescription>
-              <Button variant="outline" className="w-full">
+              <Button variant="outline" className="w-full" onClick={section.action}>
                 Manage
               </Button>
             </CardContent>

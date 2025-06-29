@@ -55,11 +55,11 @@ const SupportChat = () => {
 
   const sendNotificationEmail = async (userEmail: string, userName: string, ticketData: any) => {
     try {
-      const response = await fetch(`${supabase.supabaseUrl}/functions/v1/send-notification`, {
+      const response = await fetch('https://gluzzrbvqogiwvqdmdxh.supabase.co/functions/v1/send-notification', {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
-          'Authorization': `Bearer ${supabase.supabaseKey}`,
+          'Authorization': `Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImdsdXp6cmJ2cW9naXd2cWRtZHgiLCJyb2xlIjoiYW5vbiIsImlhdCI6MTc1MTA4ODkwNSwiZXhwIjoyMDY2NjY0OTA1fQ.9QlERgg3wpt5Dkp8XnHwfeaXMVIRAKqzeu5dkoxWKYU`,
         },
         body: JSON.stringify({
           type: 'ticket',

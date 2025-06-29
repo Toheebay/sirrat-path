@@ -61,11 +61,11 @@ const PaymentUpload = ({ onClose, onSuccess }: PaymentUploadProps) => {
 
   const sendNotificationEmail = async (userEmail: string, userName: string, paymentData: any) => {
     try {
-      const response = await fetch(`${supabase.supabaseUrl}/functions/v1/send-notification`, {
+      const response = await fetch('https://gluzzrbvqogiwvqdmdxh.supabase.co/functions/v1/send-notification', {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
-          'Authorization': `Bearer ${supabase.supabaseKey}`,
+          'Authorization': `Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImdsdXp6cmJ2cW9naXd2cWRtZHhoIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NTEwODg5MDUsImV4cCI6MjA2NjY2NDkwNX0.9QlERgg3wpt5Dkp8XnHwfeaXMVIRAKqzeu5dkoxWKYU`,
         },
         body: JSON.stringify({
           type: 'receipt',
