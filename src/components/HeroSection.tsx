@@ -2,7 +2,7 @@
 import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
-import { CheckCircle, Users, CreditCard, FileText, Plane, Home, Utensils } from "lucide-react";
+import { CheckCircle, Users, CreditCard, FileText, Plane, Home, Utensils, Clock } from "lucide-react";
 
 interface HeroSectionProps {
   setActiveTab: (tab: string) => void;
@@ -13,14 +13,14 @@ const HeroSection = ({ setActiveTab }: HeroSectionProps) => {
     { label: "Registered Pilgrims", value: "15,000+", icon: Users },
     { label: "Successful Hajj", value: "12,500+", icon: CheckCircle },
     { label: "Lagos-Medinah Flights", value: "Direct", icon: Plane },
-    { label: "Documents Processed", value: "25,000+", icon: FileText },
+    { label: "Hajj Duration", value: "3 Weeks", icon: Clock },
   ];
 
   const hajjFeatures = [
     { icon: Plane, text: "Direct flight Lagos to Medinah and back" },
-    { icon: Home, text: "Accommodation close to Haram in Makkah & Medinah" },
-    { icon: Utensils, text: "Nigerian feeding twice daily" },
-    { icon: CheckCircle, text: "Complete Hajj package with honorable Iyepe" },
+    { icon: Home, text: "3-week accommodation close to Haram in Makkah & Medinah" },
+    { icon: Utensils, text: "Nigerian feeding twice daily for 3 weeks" },
+    { icon: CheckCircle, text: "Complete 3-week Hajj package with honorable Iyepe" },
   ];
 
   return (
@@ -41,9 +41,15 @@ const HeroSection = ({ setActiveTab }: HeroSectionProps) => {
                 className="w-full max-w-md mx-auto h-auto"
               />
             </div>
-            <div className="mt-6 p-4 bg-gradient-to-r from-red-600 to-red-700 text-white rounded-lg max-w-md mx-auto">
-              <p className="text-2xl font-bold">Total Package: ₦9,850,000</p>
-              <p className="text-sm opacity-90">Pay Small Small - Installment Available</p>
+            <div className="mt-6 space-y-3">
+              <div className="p-4 bg-gradient-to-r from-red-600 to-red-700 text-white rounded-lg max-w-md mx-auto">
+                <p className="text-2xl font-bold">Total Package: ₦9,850,000</p>
+                <p className="text-sm opacity-90">3-Week Complete Hajj Experience</p>
+              </div>
+              <div className="p-3 bg-blue-100 border border-blue-300 text-blue-800 rounded-lg max-w-md mx-auto">
+                <p className="font-semibold">Registration Fee: ₦20,000</p>
+                <p className="text-sm">Pay Small Small - Installment Available</p>
+              </div>
             </div>
           </div>
 
@@ -51,7 +57,7 @@ const HeroSection = ({ setActiveTab }: HeroSectionProps) => {
             {/* Content */}
             <div className="text-center lg:text-left">
               <Badge className="mb-4 bg-emerald-100 text-emerald-800 hover:bg-emerald-200">
-                ✨ Trusted Hajj Platform
+                ✨ Trusted Hajj Platform • 3 Weeks
               </Badge>
               
               <h1 className="text-4xl md:text-5xl lg:text-6xl font-bold text-gray-900 mb-6 leading-tight">
@@ -62,9 +68,9 @@ const HeroSection = ({ setActiveTab }: HeroSectionProps) => {
               </h1>
               
               <p className="text-lg md:text-xl text-gray-600 mb-8 leading-relaxed">
-                Complete your Hajj pilgrimage with ease. Our flight from Lagos to Medinah and back to Lagos, 
-                we will take care of accommodation. Our accommodation in Makkah and Medinah is close to Haram (mosque). 
-                We will provide Nigerian feeding twice a day in Makkah and Medinah.
+                Complete your 3-week Hajj pilgrimage with ease. Our flight from Lagos to Medinah and back to Lagos, 
+                we will take care of accommodation for the full 3 weeks. Our accommodation in Makkah and Medinah is close to Haram (mosque). 
+                We will provide Nigerian feeding twice a day throughout your 3-week stay.
               </p>
 
               <div className="flex flex-col sm:flex-row gap-4 justify-center lg:justify-start mb-12">
@@ -73,7 +79,7 @@ const HeroSection = ({ setActiveTab }: HeroSectionProps) => {
                   className="bg-gradient-to-r from-emerald-600 to-blue-600 hover:from-emerald-700 hover:to-blue-700 text-white px-8 py-6 text-lg font-semibold shadow-lg hover:shadow-xl transition-all duration-300"
                   onClick={() => setActiveTab("register")}
                 >
-                  🚀 Start Your Application
+                  🚀 Start Your Application (₦20,000)
                 </Button>
                 <Button 
                   variant="outline" 

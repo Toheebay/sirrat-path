@@ -93,13 +93,28 @@ const PaymentDashboard = () => {
       <div className="flex justify-between items-center">
         <div>
           <h1 className="text-3xl font-bold text-gray-900">Payment Dashboard</h1>
-          <p className="text-gray-600">Track your payment submissions and status</p>
+          <p className="text-gray-600">Track your payment submissions and status for 3-week Hajj</p>
         </div>
         <Button onClick={() => setShowUploadForm(true)}>
           <Plus className="w-4 h-4 mr-2" />
           Submit Payment
         </Button>
       </div>
+
+      {/* Registration Fee Notice */}
+      <Card className="bg-blue-50 border-blue-200">
+        <CardHeader>
+          <CardTitle className="text-blue-800">📋 Registration Fee Required</CardTitle>
+        </CardHeader>
+        <CardContent>
+          <div className="space-y-2 text-blue-700">
+            <p><strong>Registration Fee: ₦20,000</strong></p>
+            <p className="text-sm text-blue-600">
+              This fee is required to complete your application for the 3-week Hajj package.
+            </p>
+          </div>
+        </CardContent>
+      </Card>
 
       {/* Payment Instructions */}
       <Card className="bg-emerald-50 border-emerald-200">
@@ -113,6 +128,10 @@ const PaymentDashboard = () => {
             <p>Account Name: Abdullateef Hajj and Umrah Services</p>
             <p>Account Number: [Account Number]</p>
             <p><strong>Agent Code:</strong> 952 (Use this as reference)</p>
+            <div className="mt-4 p-3 bg-emerald-100 rounded-lg">
+              <p className="font-semibold">Total Package: ₦9,850,000 + Registration Fee: ₦20,000</p>
+              <p className="text-sm">3-Week Complete Hajj Experience</p>
+            </div>
             <p className="text-sm text-emerald-600 mt-2">
               After making your transfer, upload your receipt below for verification.
             </p>
@@ -124,7 +143,7 @@ const PaymentDashboard = () => {
       <Card>
         <CardHeader>
           <CardTitle>Your Payments</CardTitle>
-          <CardDescription>Track all your payment submissions</CardDescription>
+          <CardDescription>Track all your payment submissions for 3-week Hajj</CardDescription>
         </CardHeader>
         <CardContent>
           {payments.length === 0 ? (

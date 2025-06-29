@@ -1,4 +1,3 @@
-
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
@@ -18,7 +17,7 @@ const FeatureCards = () => {
     {
       icon: Users,
       title: "Pilgrim Registration",
-      description: "Complete online application with document upload and status tracking",
+      description: "Complete online application with document upload and status tracking (₦20,000 registration fee)",
       features: ["Online Form", "Document Upload", "Status Tracking", "Passport & NIN Integration"],
       color: "emerald",
       badge: "Essential"
@@ -26,7 +25,7 @@ const FeatureCards = () => {
     {
       icon: CreditCard,
       title: "Flexible Payment System",
-      description: "Pay in convenient installments with automated reminders",
+      description: "Pay in convenient installments with automated reminders for 3-week package",
       features: ["Installment Plans", "Wallet Integration", "Auto Reminders", "Payment History"],
       color: "blue",
       badge: "Popular"
@@ -34,7 +33,7 @@ const FeatureCards = () => {
     {
       icon: FileText,
       title: "Document Management",
-      description: "Upload and verify all required documents digitally",
+      description: "Upload and verify all required documents digitally for 3-week Hajj",
       features: ["Vaccination Cards", "Passport Verification", "Visa Status", "Guarantor Info"],
       color: "purple",
       badge: "Secure"
@@ -42,15 +41,15 @@ const FeatureCards = () => {
     {
       icon: Bell,
       title: "Smart Notifications",
-      description: "Get real-time updates on payments, visa status, and travel dates",
-      features: ["Payment Alerts", "Visa Updates", "Flight Info", "Training Schedules"],
+      description: "Get real-time updates on payments, visa status, and 3-week travel dates",
+      features: ["Payment Alerts", "Visa Updates", "Flight Info", "3-Week Schedule"],
       color: "orange",
       badge: "Real-time"
     },
     {
       icon: MessageSquare,
       title: "24/7 Support Chat",
-      description: "Get instant help with live chat and WhatsApp integration",
+      description: "Get instant help with live chat and WhatsApp integration throughout 3 weeks",
       features: ["Live Chat", "WhatsApp Support", "FAQ Section", "Agent Contact"],
       color: "green",
       badge: "Always Available"
@@ -58,8 +57,8 @@ const FeatureCards = () => {
     {
       icon: BookOpen,
       title: "Hajj Resources",
-      description: "Complete guides, checklists, and educational materials",
-      features: ["First-timer Guides", "Packing Lists", "Prayer Schedules", "Hajj Steps"],
+      description: "Complete guides, checklists, and educational materials for 3-week journey",
+      features: ["First-timer Guides", "3-Week Packing Lists", "Prayer Schedules", "Hajj Steps"],
       color: "indigo",
       badge: "Educational"
     }
@@ -85,11 +84,11 @@ const FeatureCards = () => {
             🌟 Platform Features
           </Badge>
           <h2 className="text-3xl md:text-4xl font-bold text-gray-900 mb-4">
-            Everything You Need for Your Hajj Journey
+            Everything You Need for Your 3-Week Hajj Journey
           </h2>
           <p className="text-lg text-gray-600 max-w-2xl mx-auto">
             Our comprehensive platform provides all the tools and resources you need 
-            to make your Hajj pilgrimage smooth and organized.
+            to make your 3-week Hajj pilgrimage smooth and organized. Registration fee: ₦20,000
           </p>
         </div>
 
@@ -144,13 +143,13 @@ const FeatureCards = () => {
         <div className="text-center mt-16">
           <Card className="max-w-2xl mx-auto bg-gradient-to-r from-emerald-600 to-blue-600 border-0 text-white">
             <CardContent className="p-8">
-              <h3 className="text-2xl font-bold mb-4">Ready to Begin Your Sacred Journey?</h3>
+              <h3 className="text-2xl font-bold mb-4">Ready to Begin Your Sacred 3-Week Journey?</h3>
               <p className="text-emerald-100 mb-6">
-                Join thousands of pilgrims who trust our platform for their Hajj experience
+                Join thousands of pilgrims who trust our platform for their 3-week Hajj experience
               </p>
               <div className="flex flex-col sm:flex-row gap-4 justify-center">
                 <Button size="lg" variant="secondary" className="font-semibold">
-                  🚀 Start Registration
+                  🚀 Start Registration (₦20,000)
                 </Button>
                 <Button size="lg" variant="outline" className="bg-transparent border-white text-white hover:bg-white hover:text-emerald-600">
                   💬 Contact Agent
